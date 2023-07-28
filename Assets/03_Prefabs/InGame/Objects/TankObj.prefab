@@ -98,7 +98,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f83931c987d01fe45b84a3535f5eaf1c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  bulletPref: {fileID: 460880337099335922, guid: c5135654994be6d46af6371f0840ed46, type: 3}
+  bulletPref: {fileID: 2884104226347035209, guid: c5135654994be6d46af6371f0840ed46, type: 3}
   arrow: {fileID: 4584532904409250676}
   rorateSpeed: 20
   arrowSpeed: 20

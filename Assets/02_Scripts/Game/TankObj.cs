@@ -5,7 +5,7 @@ using Cysharp.Threading.Tasks;
 
 public class TankObj : MonoBehaviour
 {
-    [SerializeField] private GameObject bulletPref;
+    [SerializeField] private Bullet bulletPref;
     [SerializeField] private Transform arrow;
 
     public int rorateSpeed = 10;
@@ -52,7 +52,7 @@ public class TankObj : MonoBehaviour
         while (true)
         {
             await UniTask.Delay(500);
-            var bullet = GameObject.Instantiate(bulletPref).GetComponent<Bullet>();
+            var bullet = Lean.Pool.LeanPool.Spawn(bulletPref);
             bullet.transform.position = arrow.transform.position;
             bullet.Shoot(arrow.localPosition.normalized);
         }

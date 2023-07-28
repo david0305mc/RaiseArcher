@@ -18,4 +18,9 @@ public class Bullet : MonoBehaviour
         float angle = Mathf.Atan2(rigid2d.velocity.y, rigid2d.velocity.x) * Mathf.Rad2Deg;
         transform.eulerAngles = new Vector3(0, 0, angle);
     }
+
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        Lean.Pool.LeanPool.Despawn(gameObject);
+    }
 }
