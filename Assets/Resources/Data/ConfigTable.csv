@@ -1,0 +1,5 @@
+﻿Id|type|value|Desc
+string|string|string|string
+maxItemCount|int|5000|aaa
+test01|string|testName|bbb
+maxGold|int|3|ccc

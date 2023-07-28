@@ -1,0 +1,14 @@
+﻿type|value|number|desc1|desc2|desc3|is_string
+string|string|int|string|string|string|
+item_type|none|0|없음|||0
+item_type|Box|1|Box|||0
+item_type|Fish|2|Fish|||
+item_type|Expand|3|Expand|||
+item_type|Coral|4|Coral|||
+item_type|Gold|5|Gold|||
+item_type|Energy|6|Energy|||
+item_status|none|0|없음|||
+item_status|Boxed|1|박스 밑에 거미줄|||
+item_status|SpiderWeb|2|거미줄만 있음|||
+slot_anim_type|Active|1|활성화 됨|||
+slot_anim_type|UnActive|2|비활성화 됨|||
