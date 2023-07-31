@@ -504,6 +504,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_DontDestroyOnLoad: 1
+  boomPref: {fileID: 1040608886635896, guid: a97415c6b57076f41a6621a7b51d63a3, type: 3}
 --- !u!4 &964721540
 Transform:
   m_ObjectHideFlags: 0
