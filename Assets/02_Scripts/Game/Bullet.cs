@@ -21,7 +21,12 @@ public class Bullet : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        Lean.Pool.LeanPool.Despawn(gameObject);
         GameManager.Instance.ShowBoomEffect(collision.ClosestPoint(transform.position));
+        var damagable = collision.GetComponent<Damageable>();
+        if (damagable != null)
+        {
+            damagable.GetDamaged();
+        }
+        Lean.Pool.LeanPool.Despawn(gameObject);
     }
 }

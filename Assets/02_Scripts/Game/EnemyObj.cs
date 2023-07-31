@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class EnemyObj : MonoBehaviour
+public class EnemyObj : MonoBehaviour, Damageable
 {
 
     // Update is called once per frame
@@ -11,9 +11,8 @@ public class EnemyObj : MonoBehaviour
         transform.Translate(new Vector2(-1 * Time.deltaTime, 0));
     }
 
-    private void OnTriggerEnter2D(Collider2D collision)
+    public void GetDamaged()
     {
         Lean.Pool.LeanPool.Despawn(gameObject);
-        GameManager.Instance.ShowBoomEffect(collision.ClosestPoint(transform.position));
     }
 }
