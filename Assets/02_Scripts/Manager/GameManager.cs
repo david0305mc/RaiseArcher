@@ -6,6 +6,23 @@ using Cysharp.Threading.Tasks;
 public class GameManager : SingletonMono<GameManager>
 {
     [SerializeField] private GameObject boomPref;
+    [SerializeField] private EnemyObj skeletonPref;
+    [SerializeField] private Transform enemySpawnPos;
+    [SerializeField] private Transform worldRoot;
+
+    private void Start()
+    {
+        UpdateSpawn().Forget();
+    }
+
+    private async UniTask UpdateSpawn()
+    {
+        while (true)
+        {
+            await UniTask.Delay(1000);
+            SpwanEnemy();
+        }
+    }
 
     public void ShowBoomEffect(Vector2 _pos)
     {
@@ -23,4 +40,11 @@ public class GameManager : SingletonMono<GameManager>
             }
         }
     }
+
+    private void SpwanEnemy()
+    {
+        var obj = Lean.Pool.LeanPool.Spawn<EnemyObj>(skeletonPref, worldRoot);
+        obj.transform.position = enemySpawnPos.position;
+    }
+
 }

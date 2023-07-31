@@ -100,7 +100,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   bulletPref: {fileID: 2884104226347035209, guid: c5135654994be6d46af6371f0840ed46, type: 3}
   arrow: {fileID: 4584532904409250676}
-  rorateSpeed: 20
+  rorateSpeed: 50
   arrowSpeed: 20
   deg: 0
 --- !u!1 &4584532904409250675
