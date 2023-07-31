@@ -6,6 +6,7 @@ using Cysharp.Threading.Tasks;
 public class TankObj : MonoBehaviour
 {
     [SerializeField] private Bullet bulletPref;
+    [SerializeField] private Bullet2 bulletPref2;
     [SerializeField] private Transform arrow;
 
     public int rorateSpeed = 10;
@@ -20,7 +21,8 @@ public class TankObj : MonoBehaviour
         rotateDirection = 1;
         deg = 30f;
         AutoRotate().Forget();
-        AutoShoot().Forget();
+        //AutoShoot().Forget();
+        AutoShoot2().Forget();
     }
 
     async UniTask AutoRotate()
@@ -47,17 +49,33 @@ public class TankObj : MonoBehaviour
         }
     }
 
-    async UniTask AutoShoot()
+    async UniTask AutoShoot2()
     {
         while (true)
         {
             await UniTask.Delay(500);
-            var bullet = Lean.Pool.LeanPool.Spawn(bulletPref);
-            bullet.transform.position = arrow.transform.position;
-            bullet.Shoot(arrow.localPosition.normalized);
+            var target = GameManager.Instance.GetRandomeEnemy();
+            if (target != null)
+            {
+                var bullet = Lean.Pool.LeanPool.Spawn(bulletPref2);
+                bullet.transform.position = arrow.transform.position;
+                bullet.Shoot(target.transform);
+            }
         }
     }
-    
+
+    //async UniTask AutoShoot()
+    //{
+    //    while (true)
+    //    {
+    //        await UniTask.Delay(500);
+    //        Bullet bullet = Lean.Pool.LeanPool.Spawn(bulletPref);
+    //        bullet.transform.position = arrow.transform.position;
+    //        bullet.Shoot(arrow.localPosition.normalized);
+    //    }
+    //}
+
+
     //void Update()
     //{
     //    if (Input.GetKey(KeyCode.UpArrow))

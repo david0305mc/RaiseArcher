@@ -10,6 +10,7 @@ public class GameManager : SingletonMono<GameManager>
     [SerializeField] private Transform enemySpawnPos;
     [SerializeField] private Transform worldRoot;
 
+    private List<EnemyObj> enemyLists = new List<EnemyObj>();
     private void Start()
     {
         UpdateSpawn().Forget();
@@ -45,6 +46,16 @@ public class GameManager : SingletonMono<GameManager>
     {
         var obj = Lean.Pool.LeanPool.Spawn<EnemyObj>(skeletonPref, worldRoot);
         obj.transform.position = enemySpawnPos.position;
+        enemyLists.Add(obj);
+    }
+
+    public EnemyObj GetRandomeEnemy()
+    {
+        if (enemyLists.Count > 0)
+        {
+            return enemyLists[0]; 
+        }
+        return null;
     }
 
 }
