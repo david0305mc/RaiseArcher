@@ -34,7 +34,7 @@ public class GameManager : SingletonMono<GameManager>
 
     private void SpawnTanks()
     {
-        Enumerable.Range(0, 8).ToList().ForEach(i => {
+        Enumerable.Range(0, 1).ToList().ForEach(i => {
             var tankObj = Lean.Pool.LeanPool.Spawn(tankPref, slotLists[i]);
             tankLists.Add(tankObj);
         });
@@ -45,7 +45,7 @@ public class GameManager : SingletonMono<GameManager>
     {
         while (true)
         {
-            await UniTask.Delay(100);
+            await UniTask.Delay(1000);
             SpwanEnemy();
         }
     }

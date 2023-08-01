@@ -7,6 +7,7 @@ public class TankObj : MonoBehaviour
 {
     [SerializeField] private Bullet bulletPref;
     [SerializeField] private Bullet2 bulletPref2;
+    [SerializeField] private Bullet3 bulletPref3;
     [SerializeField] private Transform arrow;
 
     public int rorateSpeed = 10;
@@ -29,7 +30,7 @@ public class TankObj : MonoBehaviour
     {
         while (true)
         {
-            await UniTask.Delay(10);
+            await UniTask.Delay(1000);
             deg += Time.deltaTime * rorateSpeed * rotateDirection;
             if (deg >= 50)
             {
@@ -53,11 +54,11 @@ public class TankObj : MonoBehaviour
     {
         while (true)
         {
-            await UniTask.Delay(300);
+            await UniTask.Delay(3000);
             var target = GameManager.Instance.GetRandomeEnemy();
             if (target != null)
             {
-                var bullet = Lean.Pool.LeanPool.Spawn(bulletPref2);
+                var bullet = Lean.Pool.LeanPool.Spawn(bulletPref3);
                 bullet.transform.position = arrow.transform.position;
                 bullet.Shoot(target.transform, bulletSpeed);
             }

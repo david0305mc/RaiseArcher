@@ -17,7 +17,7 @@ public class EnemyObj : MonoBehaviour, Damageable
 
     void Update()
     {
-        transform.Translate(new Vector2(-speed * Time.deltaTime, 0));
+        //transform.Translate(new Vector2(-speed * Time.deltaTime, 0));
     }
 
     public void GetDamaged()

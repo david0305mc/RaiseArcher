@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Bullet2 : MonoBehaviour
+public class Bullet3 : MonoBehaviour
 {
     private Vector3 srcPos;
     private Vector3 dstPos;
@@ -21,33 +21,22 @@ public class Bullet2 : MonoBehaviour
         elapse = 0f;
         speed = _speed;
     }
-
-    void Update()
-    {
-        if (elapse < 1f)
-        {
-            elapse += Time.deltaTime * speed;
-            if (dstObj != null)
-            {
-                dstPos = dstObj.position;
-            }
-            Vector3 center = (srcPos + dstPos) * 0.5F;
-            center -= new Vector3(0, 1, 0);
-            var prevPos = transform.position;
-            transform.position = Vector3.Slerp(srcPos - center, dstPos - center, elapse);
-            transform.position += center;
-            //transform.LookAt(dst.position, Vector3.right);
-            quaternionRot = GameUtil.LookAt2D(prevPos, transform.position, GameUtil.FacingDirection.RIGHT);
-            if (elapse >= 1f)
-            {
-                Dispose();
-            }
-        }
-    }
-
     private void FixedUpdate()
     {
-        transform.rotation = quaternionRot;
+        UpdateHomingMissile();
+    }
+    private void UpdateHomingMissile()
+    {
+        if (dstObj == null)
+            return;
+
+        Vector2 dir = (Vector2)dstObj.position - rigid2d.position;
+        dir.Normalize();
+
+        float rotateAmount = Vector3.Cross(dir, transform.up).z;
+        rigid2d.angularVelocity = -rotateAmount * 200;
+        rigid2d.velocity = transform.up * 1;
+
     }
 
     private void Dispose()
