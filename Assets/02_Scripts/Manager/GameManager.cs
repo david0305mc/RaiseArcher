@@ -22,6 +22,10 @@ public class GameManager : SingletonMono<GameManager>
         UpdateEnemySpawn().Forget();
         SpawnTanks();
     }
+    protected override void OnSingletonAwake()
+    {
+        base.OnSingletonAwake();
+    }
 
     public void InitObjects()
     { 

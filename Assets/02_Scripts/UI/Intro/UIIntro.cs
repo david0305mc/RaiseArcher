@@ -11,6 +11,8 @@ public class UIIntro : MonoBehaviour
 
     private void Awake()
     {
+        Application.targetFrameRate = 180;
+        Screen.SetResolution(1080, 1920, true);
         touchToStartBtn.onClick.AddListener(() => {
             touchToStartBtn.onClick.RemoveAllListeners();
             StartGame().Forget();

@@ -27,7 +27,7 @@ Transform:
   m_GameObject: {fileID: 4584532902694374813}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 0.5, y: 0.5, z: 0.5}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 4584532904409250676}
@@ -102,7 +102,7 @@ MonoBehaviour:
   bulletPref2: {fileID: -1973165076166215235, guid: 46e27d9a92050af4a8de1326c55d5c8c, type: 3}
   arrow: {fileID: 4584532904409250676}
   rorateSpeed: 50
-  arrowSpeed: 20
+  bulletSpeed: 1
   deg: 0
 --- !u!1 &4584532904409250675
 GameObject:
