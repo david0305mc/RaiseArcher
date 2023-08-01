@@ -10,7 +10,7 @@ public class TankObj : MonoBehaviour
     [SerializeField] private Transform arrow;
 
     public int rorateSpeed = 10;
-    public int arrowSpeed = 20;
+    public float bulletSpeed = 2;
     public float deg;
 
     private int rotateDirection;
@@ -53,27 +53,27 @@ public class TankObj : MonoBehaviour
     {
         while (true)
         {
-            await UniTask.Delay(500);
+            await UniTask.Delay(300);
             var target = GameManager.Instance.GetRandomeEnemy();
             if (target != null)
             {
                 var bullet = Lean.Pool.LeanPool.Spawn(bulletPref2);
                 bullet.transform.position = arrow.transform.position;
-                bullet.Shoot(target.transform);
+                bullet.Shoot(target.transform, bulletSpeed);
             }
         }
     }
 
-    //async UniTask AutoShoot()
-    //{
-    //    while (true)
-    //    {
-    //        await UniTask.Delay(500);
-    //        Bullet bullet = Lean.Pool.LeanPool.Spawn(bulletPref);
-    //        bullet.transform.position = arrow.transform.position;
-    //        bullet.Shoot(arrow.localPosition.normalized);
-    //    }
-    //}
+    async UniTask AutoShoot()
+    {
+        while (true)
+        {
+            await UniTask.Delay(500);
+            Bullet bullet = Lean.Pool.LeanPool.Spawn(bulletPref);
+            bullet.transform.position = arrow.transform.position;
+            bullet.Shoot(arrow.localPosition.normalized);
+        }
+    }
 
 
     //void Update()

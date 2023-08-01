@@ -4,17 +4,22 @@ using UnityEngine;
 
 public class Bullet2 : MonoBehaviour
 {
-    private Vector3 src;
-    private Transform dst;
+    private Vector3 srcPos;
+    private Vector3 dstPos;
+    private Transform dstObj;
     private float elapse;
+    private float speed;
+
+
     [SerializeField] private Rigidbody2D rigid2d;
 
     private Quaternion quaternionRot;
-    public void Shoot(Transform _dst)
+    public void Shoot(Transform _dst, float _speed)
     {
-        src = transform.position;
-        dst = _dst;
+        srcPos = transform.position;
+        dstObj = _dst;
         elapse = 0f;
+        speed = _speed;
     }
 
     // Update is called once per frame
@@ -22,11 +27,15 @@ public class Bullet2 : MonoBehaviour
     {
         if (elapse < 1f)
         {
-            elapse += Time.deltaTime;
-            Vector3 center = (src + dst.position) * 0.5F;
+            elapse += Time.deltaTime * speed;
+            if (dstObj != null)
+            {
+                dstPos = dstObj.position;
+            }
+            Vector3 center = (srcPos + dstPos) * 0.5F;
             center -= new Vector3(0, 1, 0);
             var prevPos = transform.position;
-            transform.position = Vector3.Slerp(src - center, dst.position - center, elapse);
+            transform.position = Vector3.Slerp(srcPos - center, dstPos - center, elapse);
             transform.position += center;
             //transform.LookAt(dst.position, Vector3.right);
             quaternionRot = GameUtil.LookAt2D(prevPos, transform.position, GameUtil.FacingDirection.RIGHT);

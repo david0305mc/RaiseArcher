@@ -5,7 +5,16 @@ using UnityEngine;
 public class EnemyObj : MonoBehaviour, Damageable
 {
     public int speed = 1;
-    // Update is called once per frame
+    private int uid;
+
+    private System.Action removeAction;
+
+    public void SetData(int _uid, System.Action _removeAction)
+    {
+        uid = _uid;
+        removeAction = _removeAction;
+    }
+
     void Update()
     {
         transform.Translate(new Vector2(-speed * Time.deltaTime, 0));
@@ -13,6 +22,6 @@ public class EnemyObj : MonoBehaviour, Damageable
 
     public void GetDamaged()
     {
-        Lean.Pool.LeanPool.Despawn(gameObject);
+        removeAction?.Invoke();
     }
 }

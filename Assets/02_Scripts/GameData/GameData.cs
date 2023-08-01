@@ -57,3 +57,16 @@ public class BaseObjData
         return data;
     }
 }
+[System.Serializable]
+public class EnemyData
+{
+    public int uid;
+    public int tid;
+    public int hp;
+
+    public static EnemyData Create(int _uid, int _tid, int _hp)
+    {
+        EnemyData newData = new EnemyData() { uid = _uid, tid = _tid, hp = _hp };
+        return newData;
+    }
+}

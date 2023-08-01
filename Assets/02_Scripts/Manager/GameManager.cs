@@ -2,25 +2,46 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Cysharp.Threading.Tasks;
+using System.Linq;
 
 public class GameManager : SingletonMono<GameManager>
 {
+    [SerializeField] private List<Transform> slotLists;
     [SerializeField] private GameObject boomPref;
     [SerializeField] private EnemyObj skeletonPref;
+    [SerializeField] private TankObj tankPref;
     [SerializeField] private Transform enemySpawnPos;
     [SerializeField] private Transform worldRoot;
 
-    private List<EnemyObj> enemyLists = new List<EnemyObj>();
+    private Dictionary<int, EnemyObj> enemyObjDic = new Dictionary<int, EnemyObj>();
+    private List<TankObj> tankLists = new List<TankObj>();
+
     private void Start()
     {
-        UpdateSpawn().Forget();
+        InitObjects();
+        UpdateEnemySpawn().Forget();
+        SpawnTanks();
     }
 
-    private async UniTask UpdateSpawn()
+    public void InitObjects()
+    { 
+        
+    }
+
+    private void SpawnTanks()
+    {
+        Enumerable.Range(0, 8).ToList().ForEach(i => {
+            var tankObj = Lean.Pool.LeanPool.Spawn(tankPref, slotLists[i]);
+            tankLists.Add(tankObj);
+        });
+        
+    }
+
+    private async UniTask UpdateEnemySpawn()
     {
         while (true)
         {
-            await UniTask.Delay(1000);
+            await UniTask.Delay(100);
             SpwanEnemy();
         }
     }
@@ -44,18 +65,33 @@ public class GameManager : SingletonMono<GameManager>
 
     private void SpwanEnemy()
     {
-        var obj = Lean.Pool.LeanPool.Spawn<EnemyObj>(skeletonPref, worldRoot);
-        obj.transform.position = enemySpawnPos.position;
-        enemyLists.Add(obj);
+        var enemyData = UserData.Instance.AddEnemy(UserData.Instance.GenerateUID());
+        var obj = Lean.Pool.LeanPool.Spawn(skeletonPref, worldRoot);
+        obj.SetData(enemyData.uid, ()=> {
+            RemoveEnemy(enemyData.uid);
+        });
+        var randomePos = Random.insideUnitCircle * 2f;
+        obj.transform.position = enemySpawnPos.position + new Vector3(randomePos.x, randomePos.y, 0);
+        enemyObjDic.Add(enemyData.uid, obj);
+    }
+
+    public void RemoveEnemy(int uid)
+    {
+        if (UserData.Instance.EnemyDataDic.ContainsKey(uid))
+        {
+            Lean.Pool.LeanPool.Despawn(enemyObjDic[uid]);
+            UserData.Instance.RemoveEnemy(uid);
+            enemyObjDic.Remove(uid);
+        }
     }
 
     public EnemyObj GetRandomeEnemy()
     {
-        if (enemyLists.Count > 0)
-        {
-            return enemyLists[0]; 
-        }
+        var enemyUID = UserData.Instance.GetRandomEnemy();
+        if(enemyUID > 0)
+            return enemyObjDic[enemyUID];
         return null;
+
     }
 
 }

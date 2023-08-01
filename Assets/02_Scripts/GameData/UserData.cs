@@ -4,26 +4,43 @@ using UnityEngine;
 using System;
 using System.IO;
 using UniRx;
+using System.Linq;
 
 public partial class UserData : Singleton<UserData>
 {
 
     private static readonly string LocalFilePath = Path.Combine(Application.persistentDataPath, "LocalData");
     public LocalData LocalData { get; set; }
+    public SerializableDictionary<int, EnemyData> EnemyDataDic;
 
     public  ReactiveProperty<bool> IsEnemyItemSelected { get; set; }
 
-    public int ShopSelectedItem { get; set; } 
+    public int ShopSelectedItem { get; set; }
+
+    public int GenerateUID()
+    {
+        return LocalData.uidSeed++;
+    }
     public void InitData()
     {
         ShopSelectedItem = -1;
         IsEnemyItemSelected = new ReactiveProperty<bool>(false);
+        EnemyDataDic = new SerializableDictionary<int, EnemyData>();
     }
 
     public void RemoveObj(int uid)
     {
         LocalData.BaseObjDic.Remove(uid);
     }
+
+    public int GetRandomEnemy()
+    {
+        if (EnemyDataDic.Count == 0)
+            return -1;
+        int rand = UnityEngine.Random.Range(0, EnemyDataDic.Count);
+        return EnemyDataDic.ElementAt(rand).Value.uid;
+    }
+
     public void LoadLocalData()
     {
         if (File.Exists(LocalFilePath))

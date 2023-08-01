@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 6726764400185019642}
   - component: {fileID: -3924942773523368189}
   - component: {fileID: 5277085175006945856}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: SkeletonObj
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -119,6 +119,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 21d03be8f0e1d2a4184f942732027ceb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  speed: 1
 --- !u!61 &5277085175006945856
 BoxCollider2D:
   m_ObjectHideFlags: 0
