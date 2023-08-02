@@ -55,13 +55,12 @@ public class TankObj : MonoBehaviour
     {
         while (true)
         {
-            await UniTask.Delay(500);
+            await UniTask.Delay(300);
             var target = GameManager.Instance.GetRandomeEnemy();
             if (target != null)
             {
-                var bullet = Lean.Pool.LeanPool.Spawn(bulletPref4);
-                bullet.transform.position = arrow.transform.position;
-                bullet.Shoot(target.transform, bulletSpeed);
+                var bullet = Lean.Pool.LeanPool.Spawn(bulletPref4, arrow.transform.position, Quaternion.identity, GameManager.Instance.GetWorldRoot());
+                bullet.Shoot(target.UID, bulletSpeed);
             }
         }
     }

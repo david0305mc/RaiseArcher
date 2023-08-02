@@ -7,41 +7,50 @@ public class Bullet4 : MonoBehaviour
     [SerializeField] private AnimationCurve curve;
     private Vector3 srcPos;
     private Vector3 dstPos;
-    private Transform dstObj;
+
     private float elapse;
     private float speed;
-
+    private int targetUID;
+    private Vector2 prevPos;
 
     [SerializeField] private Rigidbody2D rigid2d;
 
     private Quaternion quaternionRot;
-    public void Shoot(Transform _dst, float _speed)
+    public void Shoot(int _targetUID, float _speed)
     {
+        targetUID = _targetUID;
+        var enemyObj = GameManager.Instance.GetEnemyObj(targetUID);
+        dstPos = enemyObj.transform.position;
         srcPos = transform.position;
-        dstObj = _dst;
-        dstPos = dstObj.position;
         elapse = 0f;
         speed = _speed;
-    }
-    private void FixedUpdate()
-    {
+        prevPos = srcPos;
+
     }
 
     private void Update()
     {
         UpdateMissile();
     }
+
     private void UpdateMissile()
     {
-        if (dstObj == null)
-            return;
-        float dist = Vector2.Distance(srcPos, dstObj.position);
-        elapse += Time.deltaTime / dist * 10;
+        var enemyObj = GameManager.Instance.GetEnemyObj(targetUID);
+        if (enemyObj != null)
+        {
+            dstPos = enemyObj.transform.position;
+        }
+        
+        float dist = Vector2.Distance(srcPos, dstPos);
+        elapse += Time.deltaTime / dist * 5f;
 
         var height = curve.Evaluate(elapse);
 
-        var pos = Vector2.Lerp(srcPos, dstObj.position, elapse) + new Vector2(0, height);
+        var pos = Vector2.Lerp(srcPos, dstPos, elapse) + new Vector2(0, height);
         transform.position = pos;
+        transform.rotation = GameUtil.LookAt2D(prevPos, pos, GameUtil.FacingDirection.RIGHT);
+
+        prevPos = pos;
         if (elapse >= 1)
         {
             Dispose();

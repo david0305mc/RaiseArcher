@@ -17,6 +17,22 @@ public class GameManager : SingletonMono<GameManager>
     private Dictionary<int, EnemyObj> enemyObjDic = new Dictionary<int, EnemyObj>();
     private List<TankObj> tankLists = new List<TankObj>();
 
+
+    //public bool HasEnemyObj(int uid) => enemyObjDic.ContainsKey(uid);
+    //public EnemyObj EnemyObj(int uid) => {
+    //     retu enemyObjDic[uid];
+    //    };
+    public EnemyObj GetEnemyObj(int _uid)
+    {
+        enemyObjDic.TryGetValue(_uid, out EnemyObj value);
+        return value;
+    }
+
+    public Transform GetWorldRoot()
+    {
+        return worldRoot;
+    }
+
     private void Start()
     {
         InitObjects();
@@ -36,7 +52,7 @@ public class GameManager : SingletonMono<GameManager>
 
     private void SpawnTanks()
     {
-        Enumerable.Range(0, 1).ToList().ForEach(i => {
+        Enumerable.Range(0, 8).ToList().ForEach(i => {
             var tankObj = Lean.Pool.LeanPool.Spawn(tankPref, slotLists[i]);
             tankLists.Add(tankObj);
         });
@@ -46,7 +62,7 @@ public class GameManager : SingletonMono<GameManager>
     {
         while (true)
         {
-            await UniTask.Delay(1000);
+            await UniTask.Delay(100);
             SpwanEnemy();
         }
     }
@@ -88,16 +104,9 @@ public class GameManager : SingletonMono<GameManager>
         {
             Debug.Log($"Destroy Enemy UID {uid} pos {enemyObjDic[uid].transform.position}");
             GameManager.Instance.ShowBoomEffect(enemyObjDic[uid].transform.position, uid.ToString());
-            //Lean.Pool.LeanPool.Despawn(enemyObjDic[uid]);
-            enemyObjDic[uid].gameObject.SetActive(false);
-
-            UniTask.Create(async () =>
-            {
-                await UniTask.Delay(1000);
-                Lean.Pool.LeanPool.Despawn(enemyObjDic[uid]);
-                UserData.Instance.RemoveEnemy(uid);
-                enemyObjDic.Remove(uid);
-            });
+            Lean.Pool.LeanPool.Despawn(enemyObjDic[uid]);
+            UserData.Instance.RemoveEnemy(uid);
+            enemyObjDic.Remove(uid);
         }
     }
 

@@ -6,6 +6,7 @@ public class EnemyObj : MonoBehaviour, Damageable
 {
     public int speed = 1;
     private int uid;
+    public int UID => uid;
 
     private System.Action removeAction;
 
