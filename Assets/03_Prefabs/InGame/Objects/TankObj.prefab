@@ -103,7 +103,7 @@ MonoBehaviour:
   bulletPref3: {fileID: 1355363271483102485, guid: 9a286304df7927d43abb898824d03f8b, type: 3}
   arrow: {fileID: 4584532904409250676}
   rorateSpeed: 50
-  bulletSpeed: 0.3
+  bulletSpeed: 1
   deg: 0
 --- !u!1 &4584532904409250675
 GameObject:

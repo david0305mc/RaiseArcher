@@ -54,7 +54,7 @@ public class TankObj : MonoBehaviour
     {
         while (true)
         {
-            await UniTask.Delay(3000);
+            await UniTask.Delay(100);
             var target = GameManager.Instance.GetRandomeEnemy();
             if (target != null)
             {

@@ -13,6 +13,7 @@ public class GameManager : SingletonMono<GameManager>
     [SerializeField] private Transform enemySpawnPos;
     [SerializeField] private Transform worldRoot;
 
+    private Camera mainCam;
     private Dictionary<int, EnemyObj> enemyObjDic = new Dictionary<int, EnemyObj>();
     private List<TankObj> tankLists = new List<TankObj>();
 
@@ -25,6 +26,7 @@ public class GameManager : SingletonMono<GameManager>
     protected override void OnSingletonAwake()
     {
         base.OnSingletonAwake();
+        mainCam = Camera.main;
     }
 
     public void InitObjects()
@@ -38,7 +40,6 @@ public class GameManager : SingletonMono<GameManager>
             var tankObj = Lean.Pool.LeanPool.Spawn(tankPref, slotLists[i]);
             tankLists.Add(tankObj);
         });
-        
     }
 
     private async UniTask UpdateEnemySpawn()

@@ -48,6 +48,25 @@ public class GameUtil
         return angle;
     }
 
+    public static  (Vector3 center, float size) CalulaterOrthoSize()
+    {
+        var cam = Camera.main;
+        var bounds = new Bounds();
+        foreach (var col in GameManager.FindObjectsOfType<Collider2D>())
+        {
+            bounds.Encapsulate(col.bounds);
+        }
+        bounds.Expand(1);
+        
+        var verticla = bounds.size.y;
+        var horizontal = bounds.size.x * cam.pixelHeight / cam.pixelWidth;
+
+        var size = Mathf.Max(horizontal, verticla) * 0.5f;
+        var center = bounds.center + new Vector3(0, 0, -10);
+
+        return (center, size);
+    }
+
 }
 
 
