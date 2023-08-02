@@ -1,6 +1,6 @@
 
 using UnityEngine;
-
+using Game;
 public partial class UserData : Singleton<UserData>
 {
 
@@ -17,5 +17,33 @@ public partial class UserData : Singleton<UserData>
         {
             EnemyDataDic.Remove(_uid);
         }
+    }
+
+    public (int, int) GetEmptyTile()
+    {
+        for (int y = 0; y < GameConfig.Tile_Row; y++)
+        {
+            for (int x = 0; x < GameConfig.Tile_Col; x++)
+            {
+                if (LocalData.GetItem(x, y) == default)
+                {
+                    return (x, y);
+                }
+            }
+        }
+        return (-1, -1);
+    }
+    public ItemData AddItemData(int _uid, int _x, int _y)
+    {
+        ItemData data = ItemData.Create(_uid, -1, _x, _y);
+        LocalData.itemDataDic[_uid] = data;
+        return data;
+    }
+
+    public void RemoveItemData(int _uid)
+    {
+        if (LocalData.itemDataDic.ContainsKey(_uid))
+            LocalData.itemDataDic.Remove(_uid);
+
     }
 }

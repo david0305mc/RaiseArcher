@@ -119,4 +119,12 @@ public class GameManager : SingletonMono<GameManager>
 
     }
 
+    public void AddItem()
+    {
+        var tile = UserData.Instance.GetEmptyTile();
+        var itemData = UserData.Instance.AddItemData(UserData.Instance.GenerateUID(), tile.Item1, tile.Item2);
+        MergeManager.Instance.AddItem(itemData.x, itemData.y);
+        
+    }
+
 }

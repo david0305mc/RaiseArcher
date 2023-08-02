@@ -12,10 +12,12 @@ public class MainUI : MonoBehaviour
 
     private void Awake()
     {
-        //testBtn.onClick.AddListener(() =>
-        //{
-        //    PopupManager.Instance.ShowSystemOneBtnPopup("setste", "aaaa");
-        //});
+        testBtn.onClick.AddListener(() =>
+        {
+            //PopupManager.Instance.ShowSystemOneBtnPopup("setste", "aaaa");
+
+            GameManager.Instance.AddItem();
+        });
 
         UserData.Instance.LocalData.Gold.Subscribe(v =>
         {
