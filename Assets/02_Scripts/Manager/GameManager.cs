@@ -51,9 +51,10 @@ public class GameManager : SingletonMono<GameManager>
         }
     }
 
-    public void ShowBoomEffect(Vector2 _pos)
+    public void ShowBoomEffect(Vector2 _pos, string name = default)
     {
         var boomEffect = Instantiate(boomPref);
+        boomEffect.name = name;
         boomEffect.transform.position = _pos;
 
         ParticleSystem ps = boomEffect.GetComponent<ParticleSystem>();
@@ -70,13 +71,14 @@ public class GameManager : SingletonMono<GameManager>
 
     private void SpwanEnemy()
     {
+        var randomePos = Random.insideUnitCircle * 2f;
+        var pos = enemySpawnPos.position + new Vector3(randomePos.x, randomePos.y, 0);
         var enemyData = UserData.Instance.AddEnemy(UserData.Instance.GenerateUID());
-        var obj = Lean.Pool.LeanPool.Spawn(skeletonPref, worldRoot);
+        var obj = Lean.Pool.LeanPool.Spawn(skeletonPref, pos, Quaternion.identity, worldRoot);
         obj.SetData(enemyData.uid, ()=> {
             RemoveEnemy(enemyData.uid);
         });
-        var randomePos = Random.insideUnitCircle * 2f;
-        obj.transform.position = enemySpawnPos.position + new Vector3(randomePos.x, randomePos.y, 0);
+        Debug.Log($"Enemy UID {enemyData.uid} pos {obj.transform.position}");
         enemyObjDic.Add(enemyData.uid, obj);
     }
 
@@ -84,9 +86,18 @@ public class GameManager : SingletonMono<GameManager>
     {
         if (UserData.Instance.EnemyDataDic.ContainsKey(uid))
         {
-            Lean.Pool.LeanPool.Despawn(enemyObjDic[uid]);
-            UserData.Instance.RemoveEnemy(uid);
-            enemyObjDic.Remove(uid);
+            Debug.Log($"Destroy Enemy UID {uid} pos {enemyObjDic[uid].transform.position}");
+            GameManager.Instance.ShowBoomEffect(enemyObjDic[uid].transform.position, uid.ToString());
+            //Lean.Pool.LeanPool.Despawn(enemyObjDic[uid]);
+            enemyObjDic[uid].gameObject.SetActive(false);
+
+            UniTask.Create(async () =>
+            {
+                await UniTask.Delay(1000);
+                Lean.Pool.LeanPool.Despawn(enemyObjDic[uid]);
+                UserData.Instance.RemoveEnemy(uid);
+                enemyObjDic.Remove(uid);
+            });
         }
     }
 

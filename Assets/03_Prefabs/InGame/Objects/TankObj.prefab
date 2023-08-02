@@ -101,6 +101,7 @@ MonoBehaviour:
   bulletPref: {fileID: 2884104226347035209, guid: c5135654994be6d46af6371f0840ed46, type: 3}
   bulletPref2: {fileID: -1973165076166215235, guid: 46e27d9a92050af4a8de1326c55d5c8c, type: 3}
   bulletPref3: {fileID: 1355363271483102485, guid: 9a286304df7927d43abb898824d03f8b, type: 3}
+  bulletPref4: {fileID: 5432308434817847149, guid: 0901bdfaf81fe964a8f6a6e4f32488c1, type: 3}
   arrow: {fileID: 4584532904409250676}
   rorateSpeed: 50
   bulletSpeed: 1

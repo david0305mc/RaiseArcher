@@ -11,13 +11,14 @@ public class EnemyObj : MonoBehaviour, Damageable
 
     public void SetData(int _uid, System.Action _removeAction)
     {
+        name = _uid.ToString();
         uid = _uid;
         removeAction = _removeAction;
     }
 
     void Update()
     {
-        //transform.Translate(new Vector2(-speed * Time.deltaTime, 0));
+        transform.Translate(new Vector2(-speed * Time.deltaTime, 0));
     }
 
     public void GetDamaged()
