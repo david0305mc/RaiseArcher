@@ -62,6 +62,28 @@ public class GameManager : SingletonMono<GameManager>
         }
     }
 
+    private void Update()
+    {
+
+        if (Input.GetMouseButtonDown(0))
+        {
+            MouseDownEvent4Merge();
+        }
+
+    }
+    private void MouseDownEvent4Merge()
+    {
+        var mouseDownPos4Merge = mainCam.ScreenToWorldPoint(Input.mousePosition);
+        var hit = Physics2D.Raycast(mouseDownPos4Merge, Vector3.zero, 10, Game.GameConfig.ItemLayerMask);
+        if (hit.collider != null)
+        {
+            UIItemObj itemObj = hit.collider.GetComponentInParent<UIItemObj>();
+            Debug.Log(itemObj.ItemData.uid);
+            //touchDownObj = itemObj;
+            //touchDownObj.IsDragging = false;
+        }
+    }
+
     public void ShowBoomEffect(Vector2 _pos, string name = default)
     {
         var boomEffect = Instantiate(boomPref);

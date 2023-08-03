@@ -45,6 +45,11 @@ public partial class UserData : Singleton<UserData>
     {
         if (LocalData.itemDataDic.ContainsKey(_uid))
             LocalData.itemDataDic.Remove(_uid);
+    }
 
+    public void MoveItem(int _uid, int _x, int _y)
+    {
+        LocalData.itemDataDic[_uid].x = _x;
+        LocalData.itemDataDic[_uid].y = _y;
     }
 }

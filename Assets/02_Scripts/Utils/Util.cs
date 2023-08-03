@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using UnityEngine;
+using UnityEngine.EventSystems;
+
 public partial class Utill
 {
     public static T MakeGameObject<T>(string objectname, Transform parent) where T : MonoBehaviour
@@ -99,8 +101,43 @@ public partial class Utill
     {
         return Resources.Load<T>(path);
     }
+
 }
 
+public static class RaycastUtilities
+{
+    public static bool PointerIsOverUI(Vector2 screenPos)
+    {
+        var hitObject = UIRaycast(ScreenPosToPointerData(screenPos));
+        return hitObject != null && hitObject.layer == LayerMask.NameToLayer("UI");
+    }
+
+    public static GameObject UIRaycast(PointerEventData pointerData)
+    {
+        var results = new List<RaycastResult>();
+        EventSystem.current.RaycastAll(pointerData, results);
+
+        return results.Count < 1 ? null : results[0].gameObject;
+    }
+
+    static PointerEventData ScreenPosToPointerData(Vector2 screenPos)
+       => new(EventSystem.current) { position = screenPos };
+    public static GameObject UIRaycast(PointerEventData pointerData, int layerMask)
+    {
+        var results = new List<RaycastResult>();
+        EventSystem.current.RaycastAll(pointerData, results);
+
+        foreach (var item in results)
+        {
+            if (item.gameObject.layer == layerMask)
+            {
+                return item.gameObject;
+            }
+        }
+        return null;
+    }
+
+}
 
 public static class JsonHelper
 {

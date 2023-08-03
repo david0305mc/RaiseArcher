@@ -931,6 +931,7 @@ MonoBehaviour:
   tileObjPref: {fileID: 6890034711644980699, guid: 83babb8559443884b9219bb284e651bc, type: 3}
   itemObjPref: {fileID: 7148906404587210053, guid: 84660e3cb66d03d45b348a118264d471, type: 3}
   tileRoot: {fileID: 458750353}
+  itemRoot: {fileID: 1172915631}
 --- !u!222 &1090876115
 CanvasRenderer:
   m_ObjectHideFlags: 0

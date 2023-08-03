@@ -9,6 +9,7 @@ public class MergeManager : SingletonMono<MergeManager>
     [SerializeField] private UITileObj tileObjPref;
     [SerializeField] private UIItemObj itemObjPref;
     [SerializeField] private GameObject tileRoot;
+    [SerializeField] private GameObject itemRoot;
 
     private Dictionary<int, Dictionary<int, UITileObj>> tileObjDic;
     // Start is called before the first frame update
@@ -38,8 +39,22 @@ public class MergeManager : SingletonMono<MergeManager>
 
     public void AddItem(ItemData itemData)
     {
-        UIItemObj itemObj = Lean.Pool.LeanPool.Spawn(itemObjPref, tileObjDic[itemData.y][itemData.x].transform);
-        itemObj.SetData(itemData.uid);
+        UIItemObj itemObj = Lean.Pool.LeanPool.Spawn(itemObjPref, tileObjDic[itemData.y][itemData.x].transform.position, Quaternion.identity, itemRoot.transform);
+        itemObj.SetData(itemData.uid, (pointerEventData) => {
+            var hitObj = RaycastUtilities.UIRaycast(pointerEventData, GameConfig.TileLayer);
+            if (hitObj != null)
+            {
+                UITileObj uiTileObj = hitObj.GetComponent<UITileObj>();
+                UserData.Instance.MoveItem(itemData.uid, uiTileObj.x, uiTileObj.y);
+                itemObj.MoveToTarget(uiTileObj.transform.position).Forget();
+            }
+            else
+            {
+                UITileObj uiTileObj = tileObjDic[itemData.y][itemData.x];
+                itemObj.MoveToTarget(uiTileObj.transform.position).Forget();
+            }
+        });
     }
+
     
 }
