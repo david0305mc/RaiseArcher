@@ -73,4 +73,48 @@ public partial class DataManager {
 		UnityEngine.Debug.LogError($"table doesnt contain id {_id}");
 		return null;
 	}
+	public partial class ItemLevel {
+		public int id;
+		public int groupid;
+		public string fgroupname;
+		public string name;
+		public string desc;
+		public int level;
+		public int cooltime;
+		public int get_value;
+		public int cost;
+		public string iconpath;
+	};
+	public ItemLevel[] ItemlevelArray { get; private set; }
+	public Dictionary<int, ItemLevel> ItemlevelDic { get; private set; }
+	public void BindItemLevelData(Type type, string text){
+		var deserializaedData = CSVDeserialize(text, type);
+		GetType().GetProperty(nameof(ItemlevelArray)).SetValue(this, deserializaedData, null);
+		ItemlevelDic = ItemlevelArray.ToDictionary(i => i.id);
+	}
+	public ItemLevel GetItemLevelData(int _id){
+		if (ItemlevelDic.TryGetValue(_id, out ItemLevel value)){
+			return value;
+		}
+		UnityEngine.Debug.LogError($"table doesnt contain id {_id}");
+		return null;
+	}
+	public partial class ItemGroup {
+		public int id;
+		public ITEM_TYPE type;
+	};
+	public ItemGroup[] ItemgroupArray { get; private set; }
+	public Dictionary<int, ItemGroup> ItemgroupDic { get; private set; }
+	public void BindItemGroupData(Type type, string text){
+		var deserializaedData = CSVDeserialize(text, type);
+		GetType().GetProperty(nameof(ItemgroupArray)).SetValue(this, deserializaedData, null);
+		ItemgroupDic = ItemgroupArray.ToDictionary(i => i.id);
+	}
+	public ItemGroup GetItemGroupData(int _id){
+		if (ItemgroupDic.TryGetValue(_id, out ItemGroup value)){
+			return value;
+		}
+		UnityEngine.Debug.LogError($"table doesnt contain id {_id}");
+		return null;
+	}
 };

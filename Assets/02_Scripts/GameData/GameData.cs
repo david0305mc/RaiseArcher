@@ -33,6 +33,13 @@ public class LocalData
     {
         return itemDataDic.FirstOrDefault(data => data.Value.x == _x && data.Value.y == _y).Value;
     }
+
+    public ItemData GetItem(int _uid)
+    {
+        if (itemDataDic.ContainsKey(_uid))
+            return itemDataDic[_uid];
+        return default;
+    }
 }
 
 [System.Serializable]

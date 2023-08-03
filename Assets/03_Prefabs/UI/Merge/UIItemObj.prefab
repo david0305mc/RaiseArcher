@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 1817125112578646298}
   - component: {fileID: 7867740110614662285}
   - component: {fileID: 3069632080882617253}
+  - component: {fileID: 7148906404587210053}
   m_Layer: 0
   m_Name: UIItemObj
   m_TagString: Untagged
@@ -76,3 +77,16 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &7148906404587210053
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7404084369197318531}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b6cd6d098abf92d4dbdcca460db7ac34, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  iconImage: {fileID: 3069632080882617253}

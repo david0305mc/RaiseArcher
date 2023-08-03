@@ -17,6 +17,7 @@ public class MainUI : MonoBehaviour
             //PopupManager.Instance.ShowSystemOneBtnPopup("setste", "aaaa");
 
             GameManager.Instance.AddItem();
+            
         });
 
         UserData.Instance.LocalData.Gold.Subscribe(v =>

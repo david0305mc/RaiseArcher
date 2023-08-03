@@ -10,5 +10,9 @@ public partial class DataManager
 
     }
 
+    public ItemLevel GetRandomItem()
+    {
+        return ItemlevelArray[Random.Range(0, ItemlevelArray.Length)]; 
+    }
 
 }

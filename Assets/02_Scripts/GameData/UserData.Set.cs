@@ -33,10 +33,11 @@ public partial class UserData : Singleton<UserData>
         }
         return (-1, -1);
     }
-    public ItemData AddItemData(int _uid, int _x, int _y)
+    public ItemData AddItemData(int _tid, int _x, int _y)
     {
-        ItemData data = ItemData.Create(_uid, -1, _x, _y);
-        LocalData.itemDataDic[_uid] = data;
+        int uid = UserData.Instance.GenerateUID();
+        ItemData data = ItemData.Create(uid, _tid, _x, _y);
+        LocalData.itemDataDic[uid] = data;
         return data;
     }
 

@@ -1,18 +1,15 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class UIItemObj : MonoBehaviour
 {
-    // Start is called before the first frame update
-    void Start()
+    [SerializeField] private Image iconImage;
+    public void SetData(int _uid)
     {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
+        var itemData = UserData.Instance.LocalData.GetItem(_uid);
+        var itemInfo = DataManager.Instance.GetItemLevelData(itemData.tid);
+        iconImage.SetSprite(itemInfo.iconpath);
     }
 }

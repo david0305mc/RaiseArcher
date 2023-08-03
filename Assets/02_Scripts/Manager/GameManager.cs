@@ -17,11 +17,6 @@ public class GameManager : SingletonMono<GameManager>
     private Dictionary<int, EnemyObj> enemyObjDic = new Dictionary<int, EnemyObj>();
     private List<TankObj> tankLists = new List<TankObj>();
 
-
-    //public bool HasEnemyObj(int uid) => enemyObjDic.ContainsKey(uid);
-    //public EnemyObj EnemyObj(int uid) => {
-    //     retu enemyObjDic[uid];
-    //    };
     public EnemyObj GetEnemyObj(int _uid)
     {
         enemyObjDic.TryGetValue(_uid, out EnemyObj value);
@@ -94,7 +89,6 @@ public class GameManager : SingletonMono<GameManager>
         obj.SetData(enemyData.uid, ()=> {
             RemoveEnemy(enemyData.uid);
         });
-        Debug.Log($"Enemy UID {enemyData.uid} pos {obj.transform.position}");
         enemyObjDic.Add(enemyData.uid, obj);
     }
 
@@ -102,7 +96,6 @@ public class GameManager : SingletonMono<GameManager>
     {
         if (UserData.Instance.EnemyDataDic.ContainsKey(uid))
         {
-            Debug.Log($"Destroy Enemy UID {uid} pos {enemyObjDic[uid].transform.position}");
             GameManager.Instance.ShowBoomEffect(enemyObjDic[uid].transform.position, uid.ToString());
             Lean.Pool.LeanPool.Despawn(enemyObjDic[uid]);
             UserData.Instance.RemoveEnemy(uid);
@@ -122,8 +115,9 @@ public class GameManager : SingletonMono<GameManager>
     public void AddItem()
     {
         var tile = UserData.Instance.GetEmptyTile();
-        var itemData = UserData.Instance.AddItemData(UserData.Instance.GenerateUID(), tile.Item1, tile.Item2);
-        MergeManager.Instance.AddItem(itemData.x, itemData.y);
+        var randomItemData = DataManager.Instance.GetRandomItem();
+        var itemData = UserData.Instance.AddItemData(randomItemData.id, tile.Item1, tile.Item2);
+        MergeManager.Instance.AddItem(itemData);
         
     }
 
