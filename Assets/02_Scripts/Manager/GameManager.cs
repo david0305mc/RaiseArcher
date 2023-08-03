@@ -15,7 +15,7 @@ public class GameManager : SingletonMono<GameManager>
 
     private Camera mainCam;
     private Dictionary<int, EnemyObj> enemyObjDic = new Dictionary<int, EnemyObj>();
-    private List<TankObj> tankLists = new List<TankObj>();
+    private Dictionary<int, TankObj> tankDic = new Dictionary<int, TankObj>();
 
     public EnemyObj GetEnemyObj(int _uid)
     {
@@ -48,8 +48,10 @@ public class GameManager : SingletonMono<GameManager>
     private void SpawnTanks()
     {
         Enumerable.Range(0, 8).ToList().ForEach(i => {
-            var tankObj = Lean.Pool.LeanPool.Spawn(tankPref, slotLists[i]);
-            tankLists.Add(tankObj);
+            UserData.Instance.AddTank(i, -1);
+            TankObj tankObj = Lean.Pool.LeanPool.Spawn(tankPref, slotLists[i]);
+            tankObj.SetData(i);
+            tankDic.Add(i, tankObj);
         });
     }
 
@@ -131,7 +133,6 @@ public class GameManager : SingletonMono<GameManager>
         if(enemyUID > 0)
             return enemyObjDic[enemyUID];
         return null;
-
     }
 
     public void AddItem()
@@ -140,7 +141,10 @@ public class GameManager : SingletonMono<GameManager>
         var randomItemData = DataManager.Instance.GetRandomItem();
         var itemData = UserData.Instance.AddItemData(randomItemData.id, tile.Item1, tile.Item2);
         MergeManager.Instance.AddItem(itemData);
-        
     }
-
+    public void SetTankSlot(int _index, int _ItemUID)
+    {
+        UserData.Instance.SetTankSlot(_index, _ItemUID);
+        tankDic[_index].SetData(_ItemUID);
+    }
 }

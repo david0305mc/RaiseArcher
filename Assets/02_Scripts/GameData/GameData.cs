@@ -12,12 +12,15 @@ public class LocalData
     public ReactiveProperty<long> Gold;
     public SerializableDictionary<int, BaseObjData> BaseObjDic;
     public SerializableDictionary<int, ItemData> itemDataDic;
+    public SerializableDictionary<int, TankData> tankDataDic;
+    
     public LocalData()
     {
         uidSeed = 0;
         Gold = new ReactiveProperty<long>(0);
         BaseObjDic = new SerializableDictionary<int, BaseObjData>();
         itemDataDic = new SerializableDictionary<int, ItemData>();
+        tankDataDic = new SerializableDictionary<int, TankData>();
     }
 
     public bool HasObj(int uid)
@@ -39,6 +42,13 @@ public class LocalData
         if (itemDataDic.ContainsKey(_uid))
             return itemDataDic[_uid];
         return default;
+    }
+
+    public int GetTankItem(int _index)
+    {
+        if (tankDataDic.ContainsKey(_index))
+            return tankDataDic[_index].itemUID;
+        return -1;
     }
 }
 
@@ -83,6 +93,20 @@ public class ItemData
         return newData;
     }
 }
+
+[System.Serializable]
+public class TankData
+{
+    public int index;
+    public int itemUID;
+    public static TankData Create(int _index, int _itemTID)
+    {
+        TankData newData = new TankData() { index = _index, itemUID = _itemTID };
+        return newData;
+    }
+}
+
+
 
 
 public class EnemyData

@@ -17,7 +17,7 @@ namespace Game
         public static readonly string BoxIcon01 = "Images/Round/hide_box_img_1";
 
         public static readonly int Tile_Row = 5;
-        public static readonly int Tile_Col = 6;
+        public static readonly int Tile_Col = 8;
 
         public static Dictionary<float, GameType.Direction> AngleToDirectionMap = new Dictionary<float, GameType.Direction>() {
         {1, GameType.Direction.BOTTOM_RIGHT },

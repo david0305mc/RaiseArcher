@@ -29,6 +29,18 @@ public static class UtilExtension
     }
 
 
+    public static void SetSprite(this SpriteRenderer s, string path)
+    {
+        if (s == null)
+            return;
+
+        if (string.IsNullOrEmpty(path))
+        {
+            s.sprite = null;
+            return;
+        }
+        s.sprite = Utill.Load<Sprite>(path);
+    }
     public static void SetSprite(this Image s, string path)
     {
         if (s == null)

@@ -8,11 +8,14 @@ public class MergeManager : SingletonMono<MergeManager>
 {
     [SerializeField] private UITileObj tileObjPref;
     [SerializeField] private UIItemObj itemObjPref;
+    [SerializeField] private UITankSlotObj tankSlotObjPref;
     [SerializeField] private GameObject tileRoot;
     [SerializeField] private GameObject itemRoot;
+    [SerializeField] private GameObject tankSlotRoot;
 
+    private Dictionary<int, UITankSlotObj> tankSlotDic;
     private Dictionary<int, Dictionary<int, UITileObj>> tileObjDic;
-    // Start is called before the first frame update
+    
     void Start()
     {
         tileObjDic = new Dictionary<int, Dictionary<int, UITileObj>>();
@@ -28,13 +31,13 @@ public class MergeManager : SingletonMono<MergeManager>
                 tileObjDic[y][x] = tileObj;
             }
         }
-
-        //Enumerable.Range(0, 10).ToList().ForEach(i => {
-        //    var tileObj = tileObjDic.ElementAt(i);
-        //    var itemObj = Lean.Pool.LeanPool.Spawn(itemObjPref, );
-
-        //});
-
+        tankSlotDic = new Dictionary<int, UITankSlotObj>();
+        Enumerable.Range(0, 8).ToList().ForEach(i =>
+        {
+            var tankSlotObj = Lean.Pool.LeanPool.Spawn(tankSlotObjPref, tankSlotRoot.transform);
+            tankSlotObj.index = i;
+            tankSlotDic[i] = tankSlotObj;
+        });
     }
 
     public void AddItem(ItemData itemData)
@@ -45,8 +48,21 @@ public class MergeManager : SingletonMono<MergeManager>
             if (hitObj != null)
             {
                 UITileObj uiTileObj = hitObj.GetComponent<UITileObj>();
-                UserData.Instance.MoveItem(itemData.uid, uiTileObj.x, uiTileObj.y);
-                itemObj.MoveToTarget(uiTileObj.transform.position).Forget();
+                if (uiTileObj != null)
+                {
+                    UserData.Instance.MoveItem(itemData.uid, uiTileObj.x, uiTileObj.y);
+                    itemObj.MoveToTarget(uiTileObj.transform.position).Forget();
+                }
+                else
+                {
+                    UITankSlotObj uiTankSlotObj = hitObj.GetComponent<UITankSlotObj>();
+                    if (uiTankSlotObj != null)
+                    {
+                        GameManager.Instance.SetTankSlot(uiTankSlotObj.index, itemData.uid);
+                        itemObj.MoveToTarget(uiTankSlotObj.transform.position).Forget();
+                        //UserData.Instance.MoveItem(itemData.uid, uiTileObj.x, uiTileObj.y);
+                    }
+                }
             }
             else
             {

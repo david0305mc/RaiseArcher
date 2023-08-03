@@ -5,6 +5,7 @@ using UnityEngine;
 public class Bullet4 : MonoBehaviour
 {
     [SerializeField] private AnimationCurve curve;
+    [SerializeField] private SpriteRenderer spriteRenderer;
     private Vector3 srcPos;
     private Vector3 dstPos;
 
@@ -13,9 +14,14 @@ public class Bullet4 : MonoBehaviour
     private int targetUID;
     private Vector2 prevPos;
 
-    [SerializeField] private Rigidbody2D rigid2d;
-
     private Quaternion quaternionRot;
+
+    public void UpdateData(int _itemTID)
+    {
+        DataManager.ItemLevel itemData = DataManager.Instance.GetItemLevelData(_itemTID);
+        spriteRenderer.SetSprite(itemData.iconpath);
+    }
+
     public void Shoot(int _targetUID, float _speed)
     {
         targetUID = _targetUID;
@@ -25,7 +31,6 @@ public class Bullet4 : MonoBehaviour
         elapse = 0f;
         speed = _speed;
         prevPos = srcPos;
-
     }
 
     private void Update()

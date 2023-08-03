@@ -14,6 +14,7 @@ public class TankObj : MonoBehaviour
     public int rorateSpeed = 10;
     public float bulletSpeed = 2;
     public float deg;
+    private int itemTID;
 
     private int rotateDirection;
 
@@ -21,12 +22,25 @@ public class TankObj : MonoBehaviour
     private void Start()
     {
         rotateDirection = 1;
+        itemTID = -1;
         deg = 30f;
         AutoRotate().Forget();
         //AutoShoot().Forget();
         AutoShoot2().Forget();
     }
 
+    public void SetData(int _itemUID)
+    {
+       var itemData = UserData.Instance.LocalData.GetItem(_itemUID);
+        if (itemData != null)
+        {
+            itemTID = itemData.tid;
+        }
+        else
+        {
+            itemTID = -1;
+        }
+    }
     async UniTask AutoRotate()
     {
         while (true)
@@ -60,6 +74,10 @@ public class TankObj : MonoBehaviour
             if (target != null)
             {
                 var bullet = Lean.Pool.LeanPool.Spawn(bulletPref4, arrow.transform.position, Quaternion.identity, GameManager.Instance.GetWorldRoot());
+                if (itemTID > 0)
+                {
+                    bullet.UpdateData(itemTID);
+                }
                 bullet.Shoot(target.UID, bulletSpeed);
             }
         }

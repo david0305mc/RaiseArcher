@@ -211,4 +211,5 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+  spriteRenderer: {fileID: 3567431019433223580}
   rigid2d: {fileID: 0}
