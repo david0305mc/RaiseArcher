@@ -23,6 +23,9 @@ public class UIItemObj : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDra
 
     public void OnDrag(PointerEventData eventData)
     {
+        if (itemData.playerSlotIndex >= 0)
+            return;
+
         transform.position = eventData.position;
     }
 

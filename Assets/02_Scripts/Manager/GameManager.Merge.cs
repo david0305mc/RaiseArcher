@@ -68,30 +68,38 @@ public partial class GameManager : SingletonMono<GameManager>
 
         UIItemObj itemObj = Lean.Pool.LeanPool.Spawn(itemObjPref, pos, Quaternion.identity, itemRoot.transform);
         itemObj.SetData(itemData.uid, (pointerEventData) => {
-            var hitObj = RaycastUtilities.UIRaycast(pointerEventData, GameConfig.TileLayer);
-            if (hitObj != null)
+            if (itemData.playerSlotIndex >= 0)
             {
-                UITileObj uiTileObj = hitObj.GetComponent<UITileObj>();
-                if (uiTileObj != null)
-                {
-                    UserData.Instance.MoveItem(itemData.uid, uiTileObj.x, uiTileObj.y);
-                    itemObj.MoveToTarget(uiTileObj.transform.position).Forget();
-                }
-                else
-                {
-                    UIPlayItemSlot uiTankSlotObj = hitObj.GetComponent<UIPlayItemSlot>();
-                    if (uiTankSlotObj != null)
-                    {
-                        GameManager.Instance.SetTankSlot(uiTankSlotObj.index, itemData.uid);
-                        itemObj.MoveToTarget(uiTankSlotObj.transform.position).Forget();
-                        //UserData.Instance.MoveItem(itemData.uid, uiTileObj.x, uiTileObj.y);
-                    }
-                }
+                // Select Play Slot 
+                Debug.Log("Select Play Slot");
             }
             else
             {
-                UITileObj uiTileObj = tileObjDic[itemData.x][itemData.y];
-                itemObj.MoveToTarget(uiTileObj.transform.position).Forget();
+                var hitObj = RaycastUtilities.UIRaycast(pointerEventData, GameConfig.TileLayer);
+                if (hitObj != null)
+                {
+                    UITileObj uiTileObj = hitObj.GetComponent<UITileObj>();
+                    if (uiTileObj != null)
+                    {
+                        UserData.Instance.MoveItem(itemData.uid, uiTileObj.x, uiTileObj.y);
+                        itemObj.MoveToTarget(uiTileObj.transform.position).Forget();
+                    }
+                    else
+                    {
+                        UIPlayItemSlot uiTankSlotObj = hitObj.GetComponent<UIPlayItemSlot>();
+                        if (uiTankSlotObj != null)
+                        {
+                            GameManager.Instance.SetTankSlot(uiTankSlotObj.index, itemData.uid);
+                            itemObj.MoveToTarget(uiTankSlotObj.transform.position).Forget();
+                            //UserData.Instance.MoveItem(itemData.uid, uiTileObj.x, uiTileObj.y);
+                        }
+                    }
+                }
+                else
+                {
+                    UITileObj uiTileObj = tileObjDic[itemData.x][itemData.y];
+                    itemObj.MoveToTarget(uiTileObj.transform.position).Forget();
+                }
             }
         });
     }
