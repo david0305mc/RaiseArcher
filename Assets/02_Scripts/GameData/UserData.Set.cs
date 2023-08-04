@@ -47,7 +47,7 @@ public partial class UserData : Singleton<UserData>
 
     public ItemData AddItemData(int _tid, int _x, int _y)
     {
-        int uid = UserData.Instance.GenerateUID();
+        int uid = GenerateUID();
         ItemData data = ItemData.Create(uid, _tid, _x, _y);
         LocalData.itemDataDic[uid] = data;
         return data;

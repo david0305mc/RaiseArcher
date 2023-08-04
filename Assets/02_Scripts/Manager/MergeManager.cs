@@ -19,18 +19,23 @@ public class MergeManager : SingletonMono<MergeManager>
     void Start()
     {
         tileObjDic = new Dictionary<int, Dictionary<int, UITileObj>>();
-        
+
         for (int y = 0; y < GameConfig.Tile_Row; y++)
-        {
-            tileObjDic[y] = new Dictionary<int, UITileObj>();
+        {   
             for (int x = 0; x < GameConfig.Tile_Col; x++)
             {
+                if (!tileObjDic.ContainsKey(x))
+                {
+                    tileObjDic[x] = new Dictionary<int, UITileObj>();
+                }
+                
                 var tileObj = Lean.Pool.LeanPool.Spawn(tileObjPref, tileRoot.transform);
-                tileObj.y = y;
                 tileObj.x = x;
-                tileObjDic[y][x] = tileObj;
+                tileObj.y = y;
+                tileObjDic[x][y] = tileObj;
             }
         }
+
         tankSlotDic = new Dictionary<int, UITankSlotObj>();
         Enumerable.Range(0, 8).ToList().ForEach(i =>
         {
@@ -42,7 +47,7 @@ public class MergeManager : SingletonMono<MergeManager>
 
     public void AddItem(ItemData itemData)
     {
-        UIItemObj itemObj = Lean.Pool.LeanPool.Spawn(itemObjPref, tileObjDic[itemData.y][itemData.x].transform.position, Quaternion.identity, itemRoot.transform);
+        UIItemObj itemObj = Lean.Pool.LeanPool.Spawn(itemObjPref, tileObjDic[itemData.x][itemData.y].transform.position, Quaternion.identity, itemRoot.transform);
         itemObj.SetData(itemData.uid, (pointerEventData) => {
             var hitObj = RaycastUtilities.UIRaycast(pointerEventData, GameConfig.TileLayer);
             if (hitObj != null)
@@ -66,7 +71,7 @@ public class MergeManager : SingletonMono<MergeManager>
             }
             else
             {
-                UITileObj uiTileObj = tileObjDic[itemData.y][itemData.x];
+                UITileObj uiTileObj = tileObjDic[itemData.x][itemData.y];
                 itemObj.MoveToTarget(uiTileObj.transform.position).Forget();
             }
         });

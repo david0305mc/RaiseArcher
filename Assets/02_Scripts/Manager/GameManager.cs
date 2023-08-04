@@ -41,13 +41,14 @@ public class GameManager : SingletonMono<GameManager>
     }
 
     public void InitObjects()
-    { 
+    {
         
     }
 
     private void SpawnTanks()
     {
-        Enumerable.Range(0, 8).ToList().ForEach(i => {
+        Enumerable.Range(0, 8).ToList().ForEach(i => 
+        {
             UserData.Instance.AddTank(i, -1);
             TankObj tankObj = Lean.Pool.LeanPool.Spawn(tankPref, slotLists[i]);
             tankObj.SetData(i);
