@@ -34,15 +34,15 @@ public partial class UserData : Singleton<UserData>
         return (-1, -1);
     }
 
-    public TankData AddTank(int _index, int _itemUID)
+    public PlaySlotData AddTank(int _index, int _itemUID)
     {
-        TankData data = TankData.Create(_index, _itemUID);
-        LocalData.tankDataDic[_index] = data;
+        PlaySlotData data = PlaySlotData.Create(_index, _itemUID);
+        LocalData.playSlotDataDic[_index] = data;
         return data;
     }
     public void SetTankSlot(int _index, int _uid)
     {
-        LocalData.tankDataDic[_index].itemUID = _uid;
+        LocalData.playSlotDataDic[_index].itemUID = _uid;
     }
 
     public ItemData AddItemData(int _tid, int _x, int _y, int _playerIndex = -1)

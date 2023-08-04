@@ -7,8 +7,6 @@ namespace Game
 {
     public static class GameConfig
     {
-        public static readonly int ItemSelectedLayerOrder = 10;
-
         public static int ItemLayerMask = LayerMask.GetMask("Item");
         public static int GroundLayerMask = LayerMask.GetMask("Ground");
         public static int UILayerMask = LayerMask.GetMask("UI");
@@ -18,7 +16,8 @@ namespace Game
 
         public static readonly int Tile_Row = 5;
         public static readonly int Tile_Col = 8;
-        public static readonly int DefaultItemID = 1;
+        public static readonly int MaxHeroCount = 8;
+        public static readonly int DefaultItemID = 1001;
 
         public static Dictionary<float, GameType.Direction> AngleToDirectionMap = new Dictionary<float, GameType.Direction>() {
         {1, GameType.Direction.BOTTOM_RIGHT },

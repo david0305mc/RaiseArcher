@@ -31,7 +31,6 @@ public partial class GameManager : SingletonMono<GameManager>
 
     private void Start()
     {
-        InitObjects();
         InitMergeTile();
         UpdateEnemySpawn().Forget();
         SpawnTanks();
@@ -40,11 +39,6 @@ public partial class GameManager : SingletonMono<GameManager>
     {
         base.OnSingletonAwake();
         mainCam = Camera.main;
-    }
-
-    public void InitObjects()
-    {
-        
     }
 
     private void SpawnTanks()

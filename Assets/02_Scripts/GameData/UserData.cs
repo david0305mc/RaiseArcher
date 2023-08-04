@@ -28,11 +28,6 @@ public partial class UserData : Singleton<UserData>
         EnemyDataDic = new SerializableDictionary<int, EnemyData>();
     }
 
-    public void RemoveObj(int uid)
-    {
-        LocalData.BaseObjDic.Remove(uid);
-    }
-
     public int GetRandomEnemy()
     {
         if (EnemyDataDic.Count == 0)
@@ -54,6 +49,7 @@ public partial class UserData : Singleton<UserData>
         {
             // NewGame
             LocalData = new LocalData();
+            LocalData.UpdateRefData();
         }
         
     }
