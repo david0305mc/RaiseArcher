@@ -15,10 +15,12 @@ public partial class GameManager : SingletonMono<GameManager>
 
     private Dictionary<int, UIPlayItemSlot> playItemSlotDic;
     private Dictionary<int, Dictionary<int, UITileObj>> tileObjDic;
+    private Dictionary<int, UIItemObj> uiItemObjDic;
 
     private void InitMergeTile()
     {
         // Merge Tile
+        uiItemObjDic = new Dictionary<int, UIItemObj>();
         tileObjDic = new Dictionary<int, Dictionary<int, UITileObj>>();
         for (int y = 0; y < GameConfig.Tile_Row; y++)
         {
@@ -67,7 +69,8 @@ public partial class GameManager : SingletonMono<GameManager>
         Vector2 pos = GetItemPos(itemData);
 
         UIItemObj itemObj = Lean.Pool.LeanPool.Spawn(itemObjPref, pos, Quaternion.identity, itemRoot.transform);
-        itemObj.SetData(itemData.uid, (pointerEventData) => {
+        itemObj.SetData(itemData.uid, (pointerEventData) => 
+        {
             if (itemData.playerSlotIndex >= 0)
             {
                 // Select Play Slot 
@@ -89,8 +92,18 @@ public partial class GameManager : SingletonMono<GameManager>
                         UIPlayItemSlot uiTankSlotObj = hitObj.GetComponent<UIPlayItemSlot>();
                         if (uiTankSlotObj != null)
                         {
-                            GameManager.Instance.SetTankSlot(uiTankSlotObj.index, itemData.uid);
+                            // Old PlaySlot 
+                            PlaySlotData prevSlotData = UserData.Instance.LocalData.playSlotDataDic[uiTankSlotObj.index];
+                            int prevItemUID = prevSlotData.itemUID;
+                            UIItemObj prevUIitemObj = uiItemObjDic[prevItemUID];
+
+                            SetPlayItemSlot(uiTankSlotObj.index, itemData.uid);
                             itemObj.MoveToTarget(uiTankSlotObj.transform.position).Forget();
+
+                            
+                            var targetTile = UserData.Instance.GetEmptyTile();
+                            var prevItemData = UserData.Instance.MoveItem(prevItemUID, targetTile.Item1, targetTile.Item2);
+                            prevUIitemObj.MoveToTarget(GetItemPos(prevItemData)).Forget();
                             //UserData.Instance.MoveItem(itemData.uid, uiTileObj.x, uiTileObj.y);
                         }
                     }
@@ -102,6 +115,7 @@ public partial class GameManager : SingletonMono<GameManager>
                 }
             }
         });
+        uiItemObjDic.Add(_itemUID, itemObj);
     }
     public void AddRandomItem()
     {

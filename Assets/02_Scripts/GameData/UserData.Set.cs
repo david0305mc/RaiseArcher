@@ -40,9 +40,10 @@ public partial class UserData : Singleton<UserData>
         LocalData.playSlotDataDic[_index] = data;
         return data;
     }
-    public void SetTankSlot(int _index, int _uid)
+    public void SetPlayItemSlot(int _index, int _uid)
     {
         LocalData.playSlotDataDic[_index].itemUID = _uid;
+        LocalData.itemDataDic[_uid].playerSlotIndex = _index;
     }
 
     public ItemData AddItemData(int _tid, int _x, int _y, int _playerSlotIndex = -1)
@@ -63,9 +64,11 @@ public partial class UserData : Singleton<UserData>
             LocalData.itemDataDic.Remove(_uid);
     }
 
-    public void MoveItem(int _uid, int _x, int _y)
+    public ItemData MoveItem(int _uid, int _x, int _y)
     {
         LocalData.itemDataDic[_uid].x = _x;
         LocalData.itemDataDic[_uid].y = _y;
+        LocalData.itemDataDic[_uid].playerSlotIndex = -1;
+        return LocalData.itemDataDic[_uid];
     }
 }

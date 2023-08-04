@@ -50,7 +50,6 @@ public partial class GameManager : SingletonMono<GameManager>
     {
         Enumerable.Range(0, 8).ToList().ForEach(i => 
         {
-            UserData.Instance.AddTank(i, -1);
             TankObj tankObj = Lean.Pool.LeanPool.Spawn(tankPref, slotLists[i]);
             tankObj.SetData(i);
             tankDic.Add(i, tankObj);
@@ -115,9 +114,9 @@ public partial class GameManager : SingletonMono<GameManager>
         return null;
     }
 
-    public void SetTankSlot(int _index, int _ItemUID)
+    public void SetPlayItemSlot(int _index, int _ItemUID)
     {
-        UserData.Instance.SetTankSlot(_index, _ItemUID);
-        tankDic[_index].SetData(_ItemUID);
+        UserData.Instance.SetPlayItemSlot(_index, _ItemUID);
+        tankDic[_index].UpdateData();
     }
 }

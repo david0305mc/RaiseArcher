@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Cysharp.Threading.Tasks;
+using System.Threading;
 
 public class TankObj : MonoBehaviour
 {
@@ -14,38 +15,49 @@ public class TankObj : MonoBehaviour
     public int rorateSpeed = 10;
     public float bulletSpeed = 2;
     public float deg;
-    private int itemTID;
+    public int itemTID;
+    private int slotIndex;
 
     private int rotateDirection;
 
+    private CancellationTokenSource cts;
 
     private void Start()
     {
         rotateDirection = 1;
-        itemTID = -1;
         deg = 30f;
+
         AutoRotate().Forget();
-        //AutoShoot().Forget();
         AutoShoot2().Forget();
     }
 
-    public void SetData(int _itemUID)
+    public void SetData(int _index)
     {
-       var itemData = UserData.Instance.LocalData.GetItem(_itemUID);
-        if (itemData != null)
+        cts?.Cancel();
+        cts = new CancellationTokenSource(); 
+        slotIndex = _index;
+        UpdateData();
+    }
+
+    public void UpdateData()
+    {
+        var slotData = UserData.Instance.LocalData.playSlotDataDic[slotIndex];
+        var itemData = UserData.Instance.LocalData.GetItem(slotData.itemUID);
+        itemTID = itemData.tid;
+
+        Debug.Log($"slotIndex {slotIndex} slotData.itemUID {itemTID}");
+
+        if (itemTID < 0)
         {
-            itemTID = itemData.tid;
-        }
-        else
-        {
-            itemTID = -1;
+            Debug.LogError("itemTid = -1");
         }
     }
+
     async UniTask AutoRotate()
     {
         while (true)
         {
-            await UniTask.Delay(1000);
+            await UniTask.Delay(1000, cancellationToken: cts.Token);
             deg += Time.deltaTime * rorateSpeed * rotateDirection;
             if (deg >= 50)
             {
@@ -69,7 +81,7 @@ public class TankObj : MonoBehaviour
     {
         while (true)
         {
-            await UniTask.Delay(300);
+            await UniTask.Delay(300, cancellationToken: cts.Token);
             var target = GameManager.Instance.GetRandomeEnemy();
             if (target != null)
             {
@@ -77,6 +89,10 @@ public class TankObj : MonoBehaviour
                 if (itemTID > 0)
                 {
                     bullet.UpdateData(itemTID);
+                }
+                else
+                {
+                    Debug.Log("itemTid = -1");
                 }
                 bullet.Shoot(target.UID, bulletSpeed);
             }
