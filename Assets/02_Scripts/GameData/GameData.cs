@@ -87,9 +87,11 @@ public class ItemData
     public int tid;
     public int x;
     public int y;
-    public static ItemData Create(int _uid, int _tid, int _x, int _y)
+    public int playerSlotIndex;
+
+    public static ItemData Create(int _uid, int _tid, int _x, int _y, int _playerSlotIndex)
     {
-        ItemData newData = new ItemData() { uid = _uid, tid = _tid, x = _x, y = _y };
+        ItemData newData = new ItemData() { uid = _uid, tid = _tid, x = _x, y = _y, playerSlotIndex = _playerSlotIndex };
         return newData;
     }
 }

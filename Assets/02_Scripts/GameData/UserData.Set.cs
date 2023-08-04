@@ -45,10 +45,10 @@ public partial class UserData : Singleton<UserData>
         LocalData.tankDataDic[_index].itemUID = _uid;
     }
 
-    public ItemData AddItemData(int _tid, int _x, int _y)
+    public ItemData AddItemData(int _tid, int _x, int _y, int _playerIndex = -1)
     {
         int uid = GenerateUID();
-        ItemData data = ItemData.Create(uid, _tid, _x, _y);
+        ItemData data = ItemData.Create(uid, _tid, _x, _y, _playerIndex);
         LocalData.itemDataDic[uid] = data;
         return data;
     }

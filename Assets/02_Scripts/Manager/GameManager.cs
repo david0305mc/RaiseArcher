@@ -4,7 +4,7 @@ using UnityEngine;
 using Cysharp.Threading.Tasks;
 using System.Linq;
 
-public class GameManager : SingletonMono<GameManager>
+public partial class GameManager : SingletonMono<GameManager>
 {
     [SerializeField] private List<Transform> slotLists;
     [SerializeField] private GameObject boomPref;
@@ -12,6 +12,7 @@ public class GameManager : SingletonMono<GameManager>
     [SerializeField] private TankObj tankPref;
     [SerializeField] private Transform enemySpawnPos;
     [SerializeField] private Transform worldRoot;
+
 
     private Camera mainCam;
     private Dictionary<int, EnemyObj> enemyObjDic = new Dictionary<int, EnemyObj>();
@@ -31,6 +32,7 @@ public class GameManager : SingletonMono<GameManager>
     private void Start()
     {
         InitObjects();
+        InitMergeTile();
         UpdateEnemySpawn().Forget();
         SpawnTanks();
     }
@@ -136,13 +138,6 @@ public class GameManager : SingletonMono<GameManager>
         return null;
     }
 
-    public void AddItem()
-    {
-        var tile = UserData.Instance.GetEmptyTile();
-        var randomItemData = DataManager.Instance.GetRandomItem();
-        var itemData = UserData.Instance.AddItemData(randomItemData.id, tile.Item1, tile.Item2);
-        MergeManager.Instance.AddItem(itemData);
-    }
     public void SetTankSlot(int _index, int _ItemUID)
     {
         UserData.Instance.SetTankSlot(_index, _ItemUID);

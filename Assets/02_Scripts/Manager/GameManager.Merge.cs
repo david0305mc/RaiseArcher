@@ -1,10 +1,10 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using System.Linq;
 using Game;
+using System.Linq;
 
-public class MergeManager : SingletonMono<MergeManager>
+public partial class GameManager : SingletonMono<GameManager>
 {
     [SerializeField] private UITileObj tileObjPref;
     [SerializeField] private UIItemObj itemObjPref;
@@ -15,20 +15,20 @@ public class MergeManager : SingletonMono<MergeManager>
 
     private Dictionary<int, UITankSlotObj> tankSlotDic;
     private Dictionary<int, Dictionary<int, UITileObj>> tileObjDic;
-    
-    void Start()
+
+    private void InitMergeTile()
     {
         tileObjDic = new Dictionary<int, Dictionary<int, UITileObj>>();
 
         for (int y = 0; y < GameConfig.Tile_Row; y++)
-        {   
+        {
             for (int x = 0; x < GameConfig.Tile_Col; x++)
             {
                 if (!tileObjDic.ContainsKey(x))
                 {
                     tileObjDic[x] = new Dictionary<int, UITileObj>();
                 }
-                
+
                 var tileObj = Lean.Pool.LeanPool.Spawn(tileObjPref, tileRoot.transform);
                 tileObj.x = x;
                 tileObj.y = y;
@@ -45,8 +45,12 @@ public class MergeManager : SingletonMono<MergeManager>
         });
     }
 
-    public void AddItem(ItemData itemData)
+    public void AddItem()
     {
+        var targetTile = UserData.Instance.GetEmptyTile();
+        var randomItemData = DataManager.Instance.GetRandomItem();
+        var itemData = UserData.Instance.AddItemData(randomItemData.id, targetTile.Item1, targetTile.Item2);
+
         UIItemObj itemObj = Lean.Pool.LeanPool.Spawn(itemObjPref, tileObjDic[itemData.x][itemData.y].transform.position, Quaternion.identity, itemRoot.transform);
         itemObj.SetData(itemData.uid, (pointerEventData) => {
             var hitObj = RaycastUtilities.UIRaycast(pointerEventData, GameConfig.TileLayer);
@@ -77,5 +81,4 @@ public class MergeManager : SingletonMono<MergeManager>
         });
     }
 
-    
 }
