@@ -19,17 +19,8 @@ public class LocalData
         Gold = new ReactiveProperty<long>(0);
         itemDataDic = new SerializableDictionary<int, ItemData>();
         playSlotDataDic = new SerializableDictionary<int, PlaySlotData>();
-        LoadDefaultData();
     }
 
-    private void LoadDefaultData()
-    {
-        Enumerable.Range(0, GameConfig.MaxHeroCount).ToList().ForEach(i =>
-        {
-            playSlotDataDic[i].index = i;
-            playSlotDataDic[i].itemUID = GameConfig.DefaultItemID;
-        });
-    }
 
     public void UpdateRefData()
     {
@@ -38,7 +29,7 @@ public class LocalData
     }
     public ItemData GetItem(int _x, int _y)
     {
-        return itemDataDic.FirstOrDefault(data => data.Value.x == _x && data.Value.y == _y).Value;
+        return itemDataDic.FirstOrDefault(data => data.Value.x == _x && data.Value.y == _y && data.Value.playerSlotIndex < 0).Value;
     }
 
     public ItemData GetItem(int _uid)
@@ -48,7 +39,7 @@ public class LocalData
         return default;
     }
 
-    public int GetTankItem(int _index)
+    public int GetPlaySlotItem(int _index)
     {
         if (playSlotDataDic.ContainsKey(_index))
             return playSlotDataDic[_index].itemUID;
@@ -84,9 +75,9 @@ public class PlaySlotData
 {
     public int index;
     public int itemUID;
-    public static PlaySlotData Create(int _index, int _itemTID)
+    public static PlaySlotData Create(int _index, int _itemUID)
     {
-        PlaySlotData newData = new PlaySlotData() { index = _index, itemUID = _itemTID };
+        PlaySlotData newData = new PlaySlotData() { index = _index, itemUID = _itemUID };
         return newData;
     }
 }

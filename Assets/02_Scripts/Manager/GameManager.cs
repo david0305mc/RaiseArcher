@@ -32,8 +32,13 @@ public partial class GameManager : SingletonMono<GameManager>
     private void Start()
     {
         InitMergeTile();
-        UpdateEnemySpawn().Forget();
-        SpawnTanks();
+        UniTask.Create(async () =>
+        {
+            await UniTask.NextFrame();
+            InitPlayItemSlot();
+            UpdateEnemySpawn().Forget();
+            SpawnTanks();
+        });
     }
     protected override void OnSingletonAwake()
     {

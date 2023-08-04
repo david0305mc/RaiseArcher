@@ -5,6 +5,7 @@ using System;
 using System.IO;
 using UniRx;
 using System.Linq;
+using Game;
 
 public partial class UserData : Singleton<UserData>
 {
@@ -44,16 +45,25 @@ public partial class UserData : Singleton<UserData>
             //localData = Utill.EncryptXOR(localData);
             LocalData = JsonUtility.FromJson<LocalData>(localData);
             LocalData.UpdateRefData();
+            LoadDefaultData();
         }
         else
         {
             // NewGame
             LocalData = new LocalData();
             LocalData.UpdateRefData();
+            LoadDefaultData();
         }
-        
     }
 
+    private void LoadDefaultData()
+    {
+        Enumerable.Range(0, GameConfig.MaxHeroCount).ToList().ForEach(i =>
+        {
+            AddItemData(GameConfig.DefaultItemID, 0, 0, i);
+        });
+    }
+        
     public void SaveLocalData()
     {
         var saveData = JsonUtility.ToJson(LocalData);

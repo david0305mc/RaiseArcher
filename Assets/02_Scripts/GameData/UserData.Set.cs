@@ -45,11 +45,15 @@ public partial class UserData : Singleton<UserData>
         LocalData.playSlotDataDic[_index].itemUID = _uid;
     }
 
-    public ItemData AddItemData(int _tid, int _x, int _y, int _playerIndex = -1)
+    public ItemData AddItemData(int _tid, int _x, int _y, int _playerSlotIndex = -1)
     {
         int uid = GenerateUID();
-        ItemData data = ItemData.Create(uid, _tid, _x, _y, _playerIndex);
+        ItemData data = ItemData.Create(uid, _tid, _x, _y, _playerSlotIndex);
         LocalData.itemDataDic[uid] = data;
+        if (_playerSlotIndex >= 0)
+        {
+            LocalData.playSlotDataDic[_playerSlotIndex] = PlaySlotData.Create(_playerSlotIndex, data.uid);
+        }
         return data;
     }
 

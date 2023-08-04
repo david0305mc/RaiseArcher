@@ -13,13 +13,13 @@ public partial class GameManager : SingletonMono<GameManager>
     [SerializeField] private GameObject itemRoot;
     [SerializeField] private GameObject playItemSlotRoot;
 
-    private Dictionary<int, UIPlayItemSlot> PlayItemSlot;
+    private Dictionary<int, UIPlayItemSlot> playItemSlotDic;
     private Dictionary<int, Dictionary<int, UITileObj>> tileObjDic;
 
     private void InitMergeTile()
     {
+        // Merge Tile
         tileObjDic = new Dictionary<int, Dictionary<int, UITileObj>>();
-
         for (int y = 0; y < GameConfig.Tile_Row; y++)
         {
             for (int x = 0; x < GameConfig.Tile_Col; x++)
@@ -36,22 +36,37 @@ public partial class GameManager : SingletonMono<GameManager>
             }
         }
 
-        PlayItemSlot = new Dictionary<int, UIPlayItemSlot>();
-        Enumerable.Range(0, 8).ToList().ForEach(i =>
+        // PlayItemSlot
+        playItemSlotDic = new Dictionary<int, UIPlayItemSlot>();
+        Enumerable.Range(0, GameConfig.MaxHeroCount).ToList().ForEach(i =>
         {
-            var tankSlotObj = Lean.Pool.LeanPool.Spawn(playItemSlotPref, playItemSlotRoot.transform);
-            tankSlotObj.index = i;
-            PlayItemSlot[i] = tankSlotObj;
+            var playItemSlotObj = Lean.Pool.LeanPool.Spawn(playItemSlotPref, playItemSlotRoot.transform);
+            playItemSlotObj.index = i;
+            playItemSlotDic[i] = playItemSlotObj;
         });
     }
-
-    public void AddItem()
+    public void InitPlayItemSlot()
     {
-        var targetTile = UserData.Instance.GetEmptyTile();
-        var randomItemData = DataManager.Instance.GetRandomItem();
-        var itemData = UserData.Instance.AddItemData(randomItemData.id, targetTile.Item1, targetTile.Item2);
+        foreach (var item in UserData.Instance.LocalData.playSlotDataDic)
+        {
+            AddItem(item.Value.itemUID);
+        }
+    }
 
-        UIItemObj itemObj = Lean.Pool.LeanPool.Spawn(itemObjPref, tileObjDic[itemData.x][itemData.y].transform.position, Quaternion.identity, itemRoot.transform);
+    private Vector2 GetItemPos(ItemData itemData)
+    {
+        if (itemData.playerSlotIndex >= 0)
+        {
+            return playItemSlotDic[itemData.playerSlotIndex].transform.position;
+        }
+        return tileObjDic[itemData.x][itemData.y].transform.position;
+    }
+    private void AddItem(int _itemUID)
+    {
+        var itemData = UserData.Instance.LocalData.GetItem(_itemUID);
+        Vector2 pos = GetItemPos(itemData);
+
+        UIItemObj itemObj = Lean.Pool.LeanPool.Spawn(itemObjPref, pos, Quaternion.identity, itemRoot.transform);
         itemObj.SetData(itemData.uid, (pointerEventData) => {
             var hitObj = RaycastUtilities.UIRaycast(pointerEventData, GameConfig.TileLayer);
             if (hitObj != null)
@@ -79,6 +94,13 @@ public partial class GameManager : SingletonMono<GameManager>
                 itemObj.MoveToTarget(uiTileObj.transform.position).Forget();
             }
         });
+    }
+    public void AddRandomItem()
+    {
+        var targetTile = UserData.Instance.GetEmptyTile();
+        var randomItemData = DataManager.Instance.GetRandomItem();
+        var itemData = UserData.Instance.AddItemData(randomItemData.id, targetTile.Item1, targetTile.Item2);
+        AddItem(itemData.uid);
     }
 
 }
