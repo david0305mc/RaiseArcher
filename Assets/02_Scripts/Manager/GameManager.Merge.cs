@@ -8,12 +8,12 @@ public partial class GameManager : SingletonMono<GameManager>
 {
     [SerializeField] private UITileObj tileObjPref;
     [SerializeField] private UIItemObj itemObjPref;
-    [SerializeField] private UITankSlotObj tankSlotObjPref;
+    [SerializeField] private UIPlayItemSlot playItemSlotPref;
     [SerializeField] private GameObject tileRoot;
     [SerializeField] private GameObject itemRoot;
-    [SerializeField] private GameObject tankSlotRoot;
+    [SerializeField] private GameObject playItemSlotRoot;
 
-    private Dictionary<int, UITankSlotObj> tankSlotDic;
+    private Dictionary<int, UIPlayItemSlot> PlayItemSlot;
     private Dictionary<int, Dictionary<int, UITileObj>> tileObjDic;
 
     private void InitMergeTile()
@@ -36,12 +36,12 @@ public partial class GameManager : SingletonMono<GameManager>
             }
         }
 
-        tankSlotDic = new Dictionary<int, UITankSlotObj>();
+        PlayItemSlot = new Dictionary<int, UIPlayItemSlot>();
         Enumerable.Range(0, 8).ToList().ForEach(i =>
         {
-            var tankSlotObj = Lean.Pool.LeanPool.Spawn(tankSlotObjPref, tankSlotRoot.transform);
+            var tankSlotObj = Lean.Pool.LeanPool.Spawn(playItemSlotPref, playItemSlotRoot.transform);
             tankSlotObj.index = i;
-            tankSlotDic[i] = tankSlotObj;
+            PlayItemSlot[i] = tankSlotObj;
         });
     }
 
@@ -64,7 +64,7 @@ public partial class GameManager : SingletonMono<GameManager>
                 }
                 else
                 {
-                    UITankSlotObj uiTankSlotObj = hitObj.GetComponent<UITankSlotObj>();
+                    UIPlayItemSlot uiTankSlotObj = hitObj.GetComponent<UIPlayItemSlot>();
                     if (uiTankSlotObj != null)
                     {
                         GameManager.Instance.SetTankSlot(uiTankSlotObj.index, itemData.uid);

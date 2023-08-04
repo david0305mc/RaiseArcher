@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class UITankSlotObj : MonoBehaviour
+public class UIPlayItemSlot : MonoBehaviour
 {
     public int index;
 
