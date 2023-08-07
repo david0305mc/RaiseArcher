@@ -16,10 +16,22 @@ public partial class GameManager : SingletonMono<GameManager>
 
     public void MoveItemEvent(UIItemObj itemObj, UITileObj targetTileObj)
     {
-        itemObj.MoveToTarget(targetTileObj.transform.position).Forget();
-        UserData.Instance.MoveItem(itemObj.ItemData.uid, targetTileObj.gridX, targetTileObj.gridY);
-        UserData.Instance.SaveLocalData();
+        var existedItemData = UserData.Instance.LocalData.GetItem(targetTileObj.gridX, targetTileObj.gridY);
+        if (existedItemData != null)
+        {
+            var emptyTile = UserData.Instance.GetEmptyTile(itemObj.ItemData.x, itemObj.ItemData.y);
+            UserData.Instance.MoveItem(existedItemData.uid, emptyTile.Item1, emptyTile.Item2);
+            uiItemObjDic[existedItemData.uid].MoveToTarget(tileObjDic[emptyTile.Item1][emptyTile.Item2].transform.position).Forget();
 
+            itemObj.MoveToTarget(targetTileObj.transform.position).Forget();
+            UserData.Instance.MoveItem(itemObj.ItemData.uid, targetTileObj.gridX, targetTileObj.gridY);
+        }
+        else
+        {
+            itemObj.MoveToTarget(targetTileObj.transform.position).Forget();
+            UserData.Instance.MoveItem(itemObj.ItemData.uid, targetTileObj.gridX, targetTileObj.gridY);
+        }
+        UserData.Instance.SaveLocalData();
     }
 
     public void MoveItemToPlaySlotEvent(int _playSlotIndex, UIItemObj itemObj)
@@ -32,7 +44,7 @@ public partial class GameManager : SingletonMono<GameManager>
         tankDic[_playSlotIndex].UpdateData();
         itemObj.MoveToTarget(playItemSlotDic[_playSlotIndex].transform.position).Forget();
 
-        var targetTile = UserData.Instance.GetEmptyTile();
+        var targetTile = UserData.Instance.GetEmptyTile(itemObj.ItemData.x, itemObj.ItemData.y);
         var prevItemData = UserData.Instance.MoveItem(prevItemUID, targetTile.Item1, targetTile.Item2);
         prevUIitemObj.MoveToTarget(GetItemPos(prevItemData)).Forget();
         UserData.Instance.SaveLocalData();

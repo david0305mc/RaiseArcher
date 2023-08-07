@@ -19,12 +19,17 @@ public partial class UserData : Singleton<UserData>
         }
     }
 
-    public (int, int) GetEmptyTile()
+    public (int, int) GetEmptyTile(int _includeX = -1, int _includeY = -1)
     {
         for (int y = 0; y < GameConfig.Tile_Row; y++)
         {
             for (int x = 0; x < GameConfig.Tile_Col; x++)
             {
+                if (x == _includeX && y == _includeY)
+                {
+                    return (x, y);
+                }
+
                 if (LocalData.GetItem(x, y) == default)
                 {
                     return (x, y);

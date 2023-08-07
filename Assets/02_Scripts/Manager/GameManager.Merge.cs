@@ -70,39 +70,40 @@ public partial class GameManager : SingletonMono<GameManager>
         Vector2 pos = GetItemPos(itemData);
 
         UIItemObj itemObj = Lean.Pool.LeanPool.Spawn(itemObjPref, pos, Quaternion.identity, itemRoot.transform);
-        itemObj.SetData(itemData.uid, (pointerEventData) => 
-        {
-            if (itemData.playerSlotIndex >= 0)
-            {
-                // Select Play Slot 
-                Debug.Log("Select Play Slot");
-            }
-            else
-            {
-                var hitObj = RaycastUtilities.UIRaycast(pointerEventData, GameConfig.TileLayer);
-                if (hitObj != null)
+        itemObj.SetData(itemData.uid, 
+            (pointerEventData) => {
+                if (itemData.playerSlotIndex >= 0)
                 {
-                    UITileObj uiTileObj = hitObj.GetComponent<UITileObj>();
-                    if (uiTileObj != null)
-                    {
-                        MoveItemEvent(itemObj, uiTileObj);
-                    }
-                    else
-                    {
-                        UIPlayItemSlot uiPlayItemSlotObj = hitObj.GetComponent<UIPlayItemSlot>();
-                        if (uiPlayItemSlotObj != null)
-                        {
-                            MoveItemToPlaySlotEvent(uiPlayItemSlotObj.index, itemObj);
-                        }
-                    }
+                    // Select Play Slot 
+                    Debug.Log("Select Play Slot");
                 }
                 else
                 {
-                    UITileObj uiTileObj = tileObjDic[itemData.x][itemData.y];
-                    itemObj.MoveToTarget(uiTileObj.transform.position).Forget();
+                    var hitObj = RaycastUtilities.UIRaycast(pointerEventData, GameConfig.TileLayer);
+                    if (hitObj != null)
+                    {
+                        UITileObj uiTileObj = hitObj.GetComponent<UITileObj>();
+                        if (uiTileObj != null)
+                        {
+                            MoveItemEvent(itemObj, uiTileObj);
+                        }
+                        else
+                        {
+                            UIPlayItemSlot uiPlayItemSlotObj = hitObj.GetComponent<UIPlayItemSlot>();
+                            if (uiPlayItemSlotObj != null)
+                            {
+                                MoveItemToPlaySlotEvent(uiPlayItemSlotObj.index, itemObj);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        UITileObj uiTileObj = tileObjDic[itemData.x][itemData.y];
+                        itemObj.MoveToTarget(uiTileObj.transform.position).Forget();
+                    }
                 }
-            }
-        });
+            });
+
         uiItemObjDic.Add(_itemUID, itemObj);
     }
 
