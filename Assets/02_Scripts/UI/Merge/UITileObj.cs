@@ -5,6 +5,6 @@ using UnityEngine.EventSystems;
 
 public class UITileObj : MonoBehaviour
 {
-    public int x;
-    public int y;
+    public int gridX;
+    public int gridY;
 }

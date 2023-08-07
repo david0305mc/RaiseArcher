@@ -45,7 +45,6 @@ public partial class UserData : Singleton<UserData>
             //localData = Utill.EncryptXOR(localData);
             LocalData = JsonUtility.FromJson<LocalData>(localData);
             LocalData.UpdateRefData();
-            LoadDefaultData();
         }
         else
         {

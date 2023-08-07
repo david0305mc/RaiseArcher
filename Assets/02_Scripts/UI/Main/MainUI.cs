@@ -16,7 +16,7 @@ public class MainUI : MonoBehaviour
         {
             //PopupManager.Instance.ShowSystemOneBtnPopup("setste", "aaaa");
 
-            GameManager.Instance.AddRandomItem();
+            GameManager.Instance.GenerateRandomItemEvent();
             
         });
 

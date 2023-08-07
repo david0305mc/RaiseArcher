@@ -32,8 +32,8 @@ public partial class GameManager : SingletonMono<GameManager>
                 }
 
                 var tileObj = Lean.Pool.LeanPool.Spawn(tileObjPref, tileRoot.transform);
-                tileObj.x = x;
-                tileObj.y = y;
+                tileObj.gridX = x;
+                tileObj.gridY = y;
                 tileObjDic[x][y] = tileObj;
             }
         }
@@ -51,7 +51,7 @@ public partial class GameManager : SingletonMono<GameManager>
     {
         foreach (var item in UserData.Instance.LocalData.playSlotDataDic)
         {
-            AddItem(item.Value.itemUID);
+            AddItemObj(item.Value.itemUID);
         }
     }
 
@@ -63,7 +63,7 @@ public partial class GameManager : SingletonMono<GameManager>
         }
         return tileObjDic[itemData.x][itemData.y].transform.position;
     }
-    private void AddItem(int _itemUID)
+    private void AddItemObj(int _itemUID)
     {
         var itemData = UserData.Instance.LocalData.GetItem(_itemUID);
         Vector2 pos = GetItemPos(itemData);
@@ -84,23 +84,22 @@ public partial class GameManager : SingletonMono<GameManager>
                     UITileObj uiTileObj = hitObj.GetComponent<UITileObj>();
                     if (uiTileObj != null)
                     {
-                        UserData.Instance.MoveItem(itemData.uid, uiTileObj.x, uiTileObj.y);
+                        MoveItemEvent(itemData.uid, uiTileObj.gridX, uiTileObj.gridY);
                         itemObj.MoveToTarget(uiTileObj.transform.position).Forget();
                     }
                     else
                     {
-                        UIPlayItemSlot uiTankSlotObj = hitObj.GetComponent<UIPlayItemSlot>();
-                        if (uiTankSlotObj != null)
+                        UIPlayItemSlot uiPlayItemSlotObj = hitObj.GetComponent<UIPlayItemSlot>();
+                        if (uiPlayItemSlotObj != null)
                         {
                             // Old PlaySlot 
-                            PlaySlotData prevSlotData = UserData.Instance.LocalData.playSlotDataDic[uiTankSlotObj.index];
+                            PlaySlotData prevSlotData = UserData.Instance.LocalData.playSlotDataDic[uiPlayItemSlotObj.index];
                             int prevItemUID = prevSlotData.itemUID;
                             UIItemObj prevUIitemObj = uiItemObjDic[prevItemUID];
 
-                            SetPlayItemSlot(uiTankSlotObj.index, itemData.uid);
-                            itemObj.MoveToTarget(uiTankSlotObj.transform.position).Forget();
+                            SetPlayItemSlot(uiPlayItemSlotObj.index, itemData.uid);
+                            itemObj.MoveToTarget(uiPlayItemSlotObj.transform.position).Forget();
 
-                            
                             var targetTile = UserData.Instance.GetEmptyTile();
                             var prevItemData = UserData.Instance.MoveItem(prevItemUID, targetTile.Item1, targetTile.Item2);
                             prevUIitemObj.MoveToTarget(GetItemPos(prevItemData)).Forget();
@@ -116,13 +115,6 @@ public partial class GameManager : SingletonMono<GameManager>
             }
         });
         uiItemObjDic.Add(_itemUID, itemObj);
-    }
-    public void AddRandomItem()
-    {
-        var targetTile = UserData.Instance.GetEmptyTile();
-        var randomItemData = DataManager.Instance.GetRandomItem();
-        var itemData = UserData.Instance.AddItemData(randomItemData.id, targetTile.Item1, targetTile.Item2);
-        AddItem(itemData.uid);
     }
 
 }
