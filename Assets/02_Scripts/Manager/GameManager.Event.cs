@@ -14,9 +14,27 @@ public partial class GameManager : SingletonMono<GameManager>
         UserData.Instance.SaveLocalData();
     }
 
-    public void MoveItemEvent(int _itemUID, int _gridX, int _gridY)
+    public void MoveItemEvent(UIItemObj itemObj, UITileObj targetTileObj)
     {
-        UserData.Instance.MoveItem(_itemUID, _gridX, _gridY);
+        itemObj.MoveToTarget(targetTileObj.transform.position).Forget();
+        UserData.Instance.MoveItem(itemObj.ItemData.uid, targetTileObj.gridX, targetTileObj.gridY);
+        UserData.Instance.SaveLocalData();
+
+    }
+
+    public void MoveItemToPlaySlotEvent(int _playSlotIndex, UIItemObj itemObj)
+    {
+        PlaySlotData prevSlotData = UserData.Instance.LocalData.playSlotDataDic[_playSlotIndex];
+        int prevItemUID = prevSlotData.itemUID;
+        UIItemObj prevUIitemObj = uiItemObjDic[prevItemUID];
+
+        UserData.Instance.SetPlayItemSlot(_playSlotIndex, itemObj.ItemData.uid);
+        tankDic[_playSlotIndex].UpdateData();
+        itemObj.MoveToTarget(playItemSlotDic[_playSlotIndex].transform.position).Forget();
+
+        var targetTile = UserData.Instance.GetEmptyTile();
+        var prevItemData = UserData.Instance.MoveItem(prevItemUID, targetTile.Item1, targetTile.Item2);
+        prevUIitemObj.MoveToTarget(GetItemPos(prevItemData)).Forget();
         UserData.Instance.SaveLocalData();
     }
 

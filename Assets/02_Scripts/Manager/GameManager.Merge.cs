@@ -85,26 +85,14 @@ public partial class GameManager : SingletonMono<GameManager>
                     UITileObj uiTileObj = hitObj.GetComponent<UITileObj>();
                     if (uiTileObj != null)
                     {
-                        MoveItemEvent(itemData.uid, uiTileObj.gridX, uiTileObj.gridY);
-                        itemObj.MoveToTarget(uiTileObj.transform.position).Forget();
+                        MoveItemEvent(itemObj, uiTileObj);
                     }
                     else
                     {
                         UIPlayItemSlot uiPlayItemSlotObj = hitObj.GetComponent<UIPlayItemSlot>();
                         if (uiPlayItemSlotObj != null)
                         {
-                            // Old PlaySlot 
-                            PlaySlotData prevSlotData = UserData.Instance.LocalData.playSlotDataDic[uiPlayItemSlotObj.index];
-                            int prevItemUID = prevSlotData.itemUID;
-                            UIItemObj prevUIitemObj = uiItemObjDic[prevItemUID];
-
-                            SetPlayItemSlot(uiPlayItemSlotObj.index, itemData.uid);
-                            itemObj.MoveToTarget(uiPlayItemSlotObj.transform.position).Forget();
-
-                            var targetTile = UserData.Instance.GetEmptyTile();
-                            var prevItemData = UserData.Instance.MoveItem(prevItemUID, targetTile.Item1, targetTile.Item2);
-                            prevUIitemObj.MoveToTarget(GetItemPos(prevItemData)).Forget();
-                            //UserData.Instance.MoveItem(itemData.uid, uiTileObj.x, uiTileObj.y);
+                            MoveItemToPlaySlotEvent(uiPlayItemSlotObj.index, itemObj);
                         }
                     }
                 }
