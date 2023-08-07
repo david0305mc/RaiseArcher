@@ -35,7 +35,8 @@ public partial class GameManager : SingletonMono<GameManager>
         UniTask.Create(async () =>
         {
             await UniTask.NextFrame();
-            InitPlayItemSlot();
+            
+            InitItems();
             UpdateEnemySpawn().Forget();
             SpawnTanks();
         });

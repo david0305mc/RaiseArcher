@@ -20,7 +20,6 @@ public partial class GameManager : SingletonMono<GameManager>
     private void InitMergeTile()
     {
         // Merge Tile
-        uiItemObjDic = new Dictionary<int, UIItemObj>();
         tileObjDic = new Dictionary<int, Dictionary<int, UITileObj>>();
         for (int y = 0; y < GameConfig.Tile_Row; y++)
         {
@@ -47,11 +46,13 @@ public partial class GameManager : SingletonMono<GameManager>
             playItemSlotDic[i] = playItemSlotObj;
         });
     }
-    public void InitPlayItemSlot()
+
+    private void InitItems()
     {
-        foreach (var item in UserData.Instance.LocalData.playSlotDataDic)
+        uiItemObjDic = new Dictionary<int, UIItemObj>();
+        foreach (var item in UserData.Instance.LocalData.itemDataDic)
         {
-            AddItemObj(item.Value.itemUID);
+            AddItemObj(item.Value.uid);
         }
     }
 
