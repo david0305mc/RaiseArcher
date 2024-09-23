@@ -96,6 +96,7 @@ public class FirebaseTest2 : MonoBehaviour
 
         try
         {
+            Debug.Log("SignInWithPlatform");
             await AuthManager.Instance.SignInWithPlatform(platform, cancelltaionTokenSource);
             unoText.SetText(UserDataManager.Instance.Uno.ToString());
         }

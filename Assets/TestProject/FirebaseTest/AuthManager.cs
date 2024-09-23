@@ -74,6 +74,7 @@ public class AuthManager : Singleton<AuthManager>, IDisposable
     {
         if (!IsFirebaseSigned())
         {
+            Debug.Log("SignInWithPlatform 01");
             Credential credential;
             switch (_platform)
             {
@@ -112,6 +113,7 @@ public class AuthManager : Singleton<AuthManager>, IDisposable
 
     private async UniTask<Credential> GetGoogleCredential()
     {
+        Debug.Log("GetGoogleCredential 0");
 #if ENABLE_GOOGLE_PLAY
         if (PlayGamesPlatform.Instance.IsAuthenticated())
             PlayGamesPlatform.Instance.SignOut();
@@ -121,15 +123,18 @@ public class AuthManager : Singleton<AuthManager>, IDisposable
         {
             if (!ret)
             {
+                Debug.Log("GetGoogleCredential 1");
                 ucs.TrySetCanceled();
                 return;
             }
-
+            Debug.Log("GetGoogleCredential 2");
             ucs.TrySetResult();
         });
 
         await ucs.Task;
-        return GoogleAuthProvider.GetCredential(((PlayGamesLocalUser)Social.localUser).GetIdToken(), null);
+        var token = ((PlayGamesLocalUser)Social.localUser).GetIdToken();
+        Debug.Log($"token {token}");
+        return GoogleAuthProvider.GetCredential(token, null);
 #endif
 
 #if ENABLE_GOOGLE_SIGN
@@ -139,8 +144,10 @@ public class AuthManager : Singleton<AuthManager>, IDisposable
     }
     public async UniTask<Credential> SignInWithGoogle()
     {
+        Debug.Log("SignInWithGoogle");
         var credential = await GetGoogleCredential();
         await Auth.SignInWithCredentialAsync(credential).AsUniTask();
+        Debug.Log("SignInWithGoogle 1");
         return credential;
     }
 
