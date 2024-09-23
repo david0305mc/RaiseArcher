@@ -46,9 +46,11 @@ ExportedObj/
 *.mdb
 *.opendb
 *.VC.db
+*.keystore
 Assets/Firebase
 Assets/GeneratedLocalRepo
 Assets/ExternalDependencyManager
+Assets/Google-services*
 
 # Unity3D generated meta files
 *.pidb.meta

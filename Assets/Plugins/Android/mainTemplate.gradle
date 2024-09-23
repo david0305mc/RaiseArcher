@@ -8,6 +8,9 @@
         maven {
             url (unityProjectPath + "/Assets/GeneratedLocalRepo/Firebase/m2repository") // Assets/Firebase/Editor/AppDependencies.xml:22, Assets/Firebase/Editor/AuthDependencies.xml:20, Assets/Firebase/Editor/DatabaseDependencies.xml:22, Assets/Firebase/Editor/MessagingDependencies.xml:24
         }
+        maven {
+            url (unityProjectPath + "/Assets/GeneratedLocalRepo/GooglePlayGames/Editor/m2repository") // Assets/GooglePlayGames/Editor/GooglePlayGamesPluginDependencies.xml:11
+        }
         mavenLocal()
         mavenCentral()
     }
@@ -31,13 +34,13 @@ dependencies {
     implementation 'com.google.firebase:firebase-messaging:24.0.0' // Assets/Firebase/Editor/MessagingDependencies.xml:13
     implementation 'com.google.firebase:firebase-messaging-unity:12.0.0' // Assets/Firebase/Editor/MessagingDependencies.xml:24
     implementation 'com.google.flatbuffers:flatbuffers-java:1.12.0' // Assets/Firebase/Editor/MessagingDependencies.xml:19
+    implementation 'com.google.games:gpgs-plugin-support:0.10.14' // Assets/GooglePlayGames/Editor/GooglePlayGamesPluginDependencies.xml:11
 // Android Resolver Dependencies End
 **DEPS**}
 
 // Android Resolver Exclusions Start
 android {
   packagingOptions {
-      exclude ('/lib/arm64-v8a/*' + '*')
       exclude ('/lib/armeabi/*' + '*')
       exclude ('/lib/mips/*' + '*')
       exclude ('/lib/mips64/*' + '*')

@@ -1,0 +1,64 @@
+{
+  "project_info": {
+    "project_number": "794346951950",
+    "project_id": "abyssclassic",
+    "storage_bucket": "abyssclassic.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:794346951950:android:1484233738dfd6f823335f",
+        "android_client_info": {
+          "package_name": "com.wemadeconnect.abyssclassic"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "794346951950-0vbveo3jm7l0mk470k8ddf8nusllh4qd.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.wemadeconnect.abyssclassic",
+            "certificate_hash": "0ae60eb8c2442e25f7c5b7f44e4d09fa1233c6d2"
+          }
+        },
+        {
+          "client_id": "794346951950-og4t7niuk658ch9mbd8rtj3i6hpb49ge.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.wemadeconnect.abyssclassic",
+            "certificate_hash": "72cbecd9da64291d03beabaa9db6bb0b93b92d1d"
+          }
+        },
+        {
+          "client_id": "794346951950-0u251h8fq9o4igel3k56r2b8g70c6js6.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDjF5SP4-P1DZv3V2W4rsYzwTjTOtou-WM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "794346951950-0u251h8fq9o4igel3k56r2b8g70c6js6.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "794346951950-gc1cibmni4v755s5rmerjd9j7i93cl7c.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.wemadeconnect.abyssclassic",
+                "app_store_id": "6476528044"
+              }
+            }
+          ]
+        }
+      },
+      "admob_app_id": "ca-app-pub-9673687584530511~7413983751"
+    }
+  ],
+  "configuration_version": "1"
+}
