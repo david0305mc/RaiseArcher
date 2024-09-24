@@ -51,6 +51,11 @@ public class FirebaseTest2 : MonoBehaviour
 
         });
 
+        connectGoogleButton.onClick.AddListener(() =>
+        {
+            AuthManager.Instance.LinkAccount(EPlatform.Google);
+        });
+
         loginButton.gameObject.SetActive(false);
     }
     private void OnDestroy()
