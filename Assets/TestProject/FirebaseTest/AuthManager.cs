@@ -38,10 +38,6 @@ public class AuthManager : Singleton<AuthManager>, IDisposable
         {
             InitializeFirebase();
             InitializeGPGS();
-            if (IsFirebaseSigned() && IsActiveEmptyUser())
-            {
-                SignOutFirebase();
-            }
             initialized = true;
             return true;
         }
@@ -115,23 +111,30 @@ public class AuthManager : Singleton<AuthManager>, IDisposable
     {
         Debug.Log("GetGoogleCredential 0");
 #if ENABLE_GOOGLE_PLAY
-        if (PlayGamesPlatform.Instance.IsAuthenticated())
-            PlayGamesPlatform.Instance.SignOut();
 
-        UniTaskCompletionSource ucs = new UniTaskCompletionSource();
-        Social.localUser.Authenticate(ret =>
+        if (PlayGamesPlatform.Instance.localUser.authenticated)
         {
-            if (!ret)
+            Debug.Log("authenticated");
+        }
+        else
+        {
+            UniTaskCompletionSource ucs = new UniTaskCompletionSource();
+            Social.localUser.Authenticate((success, msg) =>
             {
-                Debug.Log("GetGoogleCredential 1");
-                ucs.TrySetCanceled();
-                return;
-            }
-            Debug.Log("GetGoogleCredential 2");
-            ucs.TrySetResult();
-        });
+                Debug.Log($"msg {msg}");
+                if (!success)
+                {
+                    Debug.Log("GetGoogleCredential 1");
+                    ucs.TrySetCanceled();
+                    return;
+                }
+                Debug.Log("GetGoogleCredential 2");
+                ucs.TrySetResult();
+            });
 
-        await ucs.Task;
+            await ucs.Task;
+        }
+
         var token = ((PlayGamesLocalUser)Social.localUser).GetIdToken();
         Debug.Log($"token {token}");
         return GoogleAuthProvider.GetCredential(token, null);
@@ -142,17 +145,35 @@ public class AuthManager : Singleton<AuthManager>, IDisposable
         return GoogleAuthProvider.GetCredential(signInUser.IdToken, null);
 #endif
     }
-    public async UniTask<Credential> SignInWithGoogle()
+    public async UniTask SignInWithGoogle()
     {
-        Debug.Log("SignInWithGoogle");
-        var credential = await GetGoogleCredential();
-        await Auth.SignInWithCredentialAsync(credential).AsUniTask();
-        Debug.Log("SignInWithGoogle 1");
-        return credential;
+        RETRY:
+        try
+        {
+            Debug.Log("SignInWithGoogle");
+            await UniTask.Delay(100);
+            var credential = await GetGoogleCredential();
+            await Auth.SignInWithCredentialAsync(credential).AsUniTask();
+        }
+        catch
+        {
+            Debug.Log("SignInWithGoogle Retry");
+            goto RETRY;
+        }
+
+
     }
 
     public void SignOut()
     {
+#if !UNITY_EDITOR && ENABLE_GOOGLE_PLAY
+        if (PlayGamesPlatform.Instance.IsAuthenticated())
+            PlayGamesPlatform.Instance.SignOut();
+#endif
+
+#if !UNITY_EDITOR && ENABLE_GOOGLE_SIGN
+        GoogleSignIn.DefaultInstance.SignOut();
+#endif
         Auth.SignOut();
     }
     private async UniTask<Credential> SignInWithGuest()
@@ -179,7 +200,7 @@ public class AuthManager : Singleton<AuthManager>, IDisposable
     }
     void InitializeGPGS()
     {
-        var config = new PlayGamesClientConfiguration.Builder()
+        PlayGamesClientConfiguration config = new PlayGamesClientConfiguration.Builder()
             .RequestIdToken()
             .Build();
 
@@ -213,11 +234,6 @@ public class AuthManager : Singleton<AuthManager>, IDisposable
             return;
 
         Debug.LogFormat("[Firebase/OnIdTokenChanged] Sender : {0}", sender.ToString());
-    }
-
-    private void SignOutFirebase()
-    {
-        Auth.SignOut();
     }
 
     public void GetUserDataFromServer()

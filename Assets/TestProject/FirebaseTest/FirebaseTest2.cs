@@ -12,7 +12,7 @@ public class FirebaseTest2 : MonoBehaviour
     [SerializeField] private SelectPlatformPopup platformPopup;
     [SerializeField] private Button loginButton;
     [SerializeField] private Button levelUpButton;
-    [SerializeField] private Button levelOutButton;
+    [SerializeField] private Button logOutButton;
     [SerializeField] private Button connectGoogleButton;
     [SerializeField] private Button connectAppleButton;
     [SerializeField] private GameObject mainObj;
@@ -39,7 +39,7 @@ public class FirebaseTest2 : MonoBehaviour
             ServerAPI.SaveToServer();
 
         });
-        levelOutButton.onClick.AddListener(() =>
+        logOutButton.onClick.AddListener(() =>
         {
             AuthManager.Instance.SignOut();
 
