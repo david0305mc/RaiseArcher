@@ -10,6 +10,7 @@ public class SelectPlatformPopup : MonoBehaviour
     [SerializeField] private Button appleButton;
     [SerializeField] private Button guestButton;
     [SerializeField] private Button emailButton;
+    [SerializeField] private Button emailSignUpButton;
     [SerializeField] private TMP_InputField emailInputField;
     
     private System.Action<EPlatform> callback;
@@ -34,6 +35,13 @@ public class SelectPlatformPopup : MonoBehaviour
                 return;
             AuthManager.Instance.EMail = emailInputField.text;
             callback.Invoke(EPlatform.Email);
+        });
+        emailSignUpButton.onClick.AddListener(() =>
+        {
+            if (string.IsNullOrEmpty(emailInputField.text))
+                return;
+            AuthManager.Instance.EMail = emailInputField.text;
+            AuthManager.Instance.SignUpWithEmail();
         });
     }
     public void Set(System.Action<EPlatform> _callback)

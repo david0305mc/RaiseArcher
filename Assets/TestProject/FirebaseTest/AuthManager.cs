@@ -177,6 +177,27 @@ public class AuthManager : Singleton<AuthManager>, IDisposable
 #endif
         Auth.SignOut();
     }
+    public void SignUpWithEmail()
+    {
+        Auth.CreateUserWithEmailAndPasswordAsync(EMail, "testEmail").ContinueWith(task =>
+        {
+            if (task.IsCanceled)
+            {
+                Debug.LogError("CreateUserWithEmailAndPasswordAsync was canceled.");
+                return;
+            }
+            if (task.IsFaulted)
+            {
+                Debug.LogError("CreateUserWithEmailAndPasswordAsync encountered an error: " + task.Exception);
+                return;
+            }
+
+            // Firebase user has been created.
+            Firebase.Auth.AuthResult result = task.Result;
+            Debug.LogFormat("Firebase user created successfully: {0} ({1})",
+                result.User.DisplayName, result.User.UserId);
+        });
+    }
     private async UniTask<Credential> SignInWithEmail()
     {
         var ret = await Auth.SignInWithEmailAndPasswordAsync(EMail, "testEmail").AsUniTask();

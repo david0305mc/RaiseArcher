@@ -93,9 +93,9 @@ public class FirebaseTest2 : MonoBehaviour
             ucs.TrySetResult(_platform);
         });
         var platform = await ucs.Task;
-#if UNITY_EDITOR
-        platform = EPlatform.Guest;
-#endif
+//#if UNITY_EDITOR
+//        platform = EPlatform.Guest;
+//#endif
         platformPopup.gameObject.SetActive(false);
         mainObj.SetActive(true);
 
