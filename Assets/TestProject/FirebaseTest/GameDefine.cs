@@ -5,15 +5,15 @@ using UnityEngine;
 
 public enum EServerStatus
 {
-    /// <summary>라이브</summary>
+    /// <summary>??????</summary>
     Live,
-    /// <summary>리뷰</summary>
+    /// <summary>????</summary>
     Review = 5,
-    /// <summary>업데이트 권장</summary>
+    /// <summary>???????? ????</summary>
     Update_Recommend,
-    /// <summary>업데이트 강제</summary>
+    /// <summary>???????? ????</summary>
     Update_Essential,
-    /// <summary>점검</summary>
+    /// <summary>????</summary>
     Maintenance,
 }
 public class VersionData
@@ -47,6 +47,7 @@ public enum EPlatform
     Apple,
     Guest,
     Webus,
+    Email,
     DevWindows = 90,
     Unknown,
     Deleted,

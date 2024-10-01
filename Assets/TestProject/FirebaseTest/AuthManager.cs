@@ -22,6 +22,7 @@ public class AuthManager : Singleton<AuthManager>, IDisposable
     private FirebaseApp _app;
     private FirebaseAuth Auth { get; set; }
     private FirebaseUser User { get; set; }
+    public string EMail { get; set; }
 
     private bool initialized = false;
     public UniTaskCompletionSource<string> pushToken = new UniTaskCompletionSource<string>();
@@ -79,6 +80,9 @@ public class AuthManager : Singleton<AuthManager>, IDisposable
                     break;
                 case EPlatform.Guest:
                     await SignInWithGuest().AttachExternalCancellation(_cts.Token);
+                    break;
+                case EPlatform.Email:
+                    await SignInWithEmail().AttachExternalCancellation(_cts.Token);
                     break;
                 default:
                     await SignInWithGuest().AttachExternalCancellation(_cts.Token);
@@ -173,6 +177,12 @@ public class AuthManager : Singleton<AuthManager>, IDisposable
 #endif
         Auth.SignOut();
     }
+    private async UniTask<Credential> SignInWithEmail()
+    {
+        var ret = await Auth.SignInWithEmailAndPasswordAsync(EMail, "testEmail").AsUniTask();
+        return ret.Credential;
+    }
+
     private async UniTask<Credential> SignInWithGuest()
     {
         var ret = await Auth.SignInAnonymouslyAsync().AsUniTask();
