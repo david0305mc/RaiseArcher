@@ -21,9 +21,10 @@ public class AuthManager : Singleton<AuthManager>, IDisposable
 {
     private FirebaseApp _app;
     private FirebaseAuth Auth { get; set; }
-    private FirebaseUser User { get; set; }
+    public FirebaseUser User { get; set; }
     public string EMail { get; set; }
 
+    public readonly string EmailPw = "testEmail";
     private bool initialized = false;
     public UniTaskCompletionSource<string> pushToken = new UniTaskCompletionSource<string>();
     public async UniTask<bool> Initialize()
@@ -92,22 +93,25 @@ public class AuthManager : Singleton<AuthManager>, IDisposable
         }
         Debug.Log($"test2");
         var token = await Auth.CurrentUser.TokenAsync(true).AsUniTask().AttachExternalCancellation(_cts.Token);
-        Debug.Log($"test3 {token}");
-        SetActiveUser("Guest");
+        
+        Debug.Log($"Token {token}");
+        //SetActiveUser("Guest");
+
+
         //token = "eyJhbGciOiJSUzI1NiIsImtpZCI6ImUwM2E2ODg3YWU3ZjNkMTAyNzNjNjRiMDU3ZTY1MzE1MWUyOTBiNzIiLCJ0eXAiOiJKV1QifQ.eyJwcm92aWRlcl9pZCI6ImFub255bW91cyIsImlzcyI6Imh0dHBzOi8vc2VjdXJldG9rZW4uZ29vZ2xlLmNvbS9hYnlzc2NsYXNzaWMiLCJhdWQiOiJhYnlzc2NsYXNzaWMiLCJhdXRoX3RpbWUiOjE3MjY3Mzk0NjgsInVzZXJfaWQiOiJGV213T2MxdTZDWE9mR05Pb1ZlMWlqaGRLVEEzIiwic3ViIjoiRldtd09jMXU2Q1hPZkdOT29WZTFpamhkS1RBMyIsImlhdCI6MTcyNjc0MDAyMSwiZXhwIjoxNzI2NzQzNjIxLCJmaXJlYmFzZSI6eyJpZGVudGl0aWVzIjp7fSwic2lnbl9pbl9wcm92aWRlciI6ImFub255bW91cyJ9fQ.GryMezHmwqb6GmFbQCMEkiqwSs4MTc5uPRieb43PpK-L7poD6r6fAkFrCPYrwDshQLPlpPoAt6zEZMa8r7b36uvgqseoH8yef2AwKZQqbLdKigJVbe1P3BjOW1HP05u87CwHNVNp-Q-5v8Xw2xuVij3VGdu9rE5QZO1A1fqGvOZTo2QGz2zyjZso6y8FFF3w9nlZEMMWHJwfMTgo90F-587SvYkR1MfTf91bqUoEiEnEXmdvI1hqmAhwhYjdCnbFd9U4uIDFBqQ73Mn6BLCTkslrHINzF1nFbR8hw3IQ57bIW7JJYFlsN-yXyfBKzaXI-onOdllpWDZcwMHLO3IXDg";
-        var repSignIn = await ServerAPI.SignIn(EPlatform.Guest, token, "KO", string.Empty, default).AttachExternalCancellation(_cts.Token);
-        Debug.Log($"test4");
-        var repLogin = await ServerAPI.Login(repSignIn.uno, repSignIn.token, default).AttachExternalCancellation(_cts.Token);
-        UserDataManager.Instance.Uno = repSignIn.uno;
-        Debug.Log($"test5");
-        if (repSignIn.first_login == 0)
-        {
-            await ServerAPI.LoadFromServer(_cts.Token);
-        }
-        else
-        { 
-            // new User
-        }
+        //var repSignIn = await ServerAPI.SignIn(_platform, token, "KO", string.Empty, default).AttachExternalCancellation(_cts.Token);
+        //Debug.Log($"test4");
+        //var repLogin = await ServerAPI.Login(repSignIn.uno, repSignIn.token, default).AttachExternalCancellation(_cts.Token);
+        //UserDataManager.Instance.Uno = repSignIn.uno;
+        //Debug.Log($"test5");
+        //if (repSignIn.first_login == 0)
+        //{
+        //    await ServerAPI.LoadFromServer(_cts.Token);
+        //}
+        //else
+        //{ 
+        //    // new User
+        //}
         return true;
     }
 
@@ -179,7 +183,7 @@ public class AuthManager : Singleton<AuthManager>, IDisposable
     }
     public void SignUpWithEmail()
     {
-        Auth.CreateUserWithEmailAndPasswordAsync(EMail, "testEmail").ContinueWith(task =>
+        Auth.CreateUserWithEmailAndPasswordAsync(EMail, EmailPw).ContinueWith(task =>
         {
             if (task.IsCanceled)
             {
@@ -200,7 +204,7 @@ public class AuthManager : Singleton<AuthManager>, IDisposable
     }
     private async UniTask<Credential> SignInWithEmail()
     {
-        var ret = await Auth.SignInWithEmailAndPasswordAsync(EMail, "testEmail").AsUniTask();
+        var ret = await Auth.SignInWithEmailAndPasswordAsync(EMail, EmailPw).AsUniTask();
         return ret.Credential;
     }
 
@@ -309,6 +313,57 @@ public class AuthManager : Singleton<AuthManager>, IDisposable
 
         switch (target)
         {
+            case EPlatform.Email:
+                {
+                    //var ret = await Auth.SignInWithEmailAndPasswordAsync(EMail, EmailPw).AsUniTask();
+                    //return ret.Credential;
+                    Firebase.Auth.Credential credential = Firebase.Auth.EmailAuthProvider.GetCredential(EMail, EmailPw);
+                    await Auth.CurrentUser.LinkWithCredentialAsync(credential).ContinueWith(task =>
+                    {
+                        if (task.IsCanceled)
+                        {
+                            Debug.LogError("LinkWithCredentialAsync was canceled.");
+                            return;
+                        }
+                        if (task.IsFaulted)
+                        {
+                            Debug.LogError("LinkWithCredentialAsync encountered an error: " + task.Exception);
+                            // Gather data for the currently signed in User.
+                            string currentUserId = Auth.CurrentUser.UserId;
+                            string currentEmail = Auth.CurrentUser.Email;
+                            string currentDisplayName = Auth.CurrentUser.DisplayName;
+                            System.Uri currentPhotoUrl = Auth.CurrentUser.PhotoUrl;
+
+                            // Sign in with the new credentials.
+                            Auth.SignInAndRetrieveDataWithCredentialAsync(credential).ContinueWith(task => {
+                                if (task.IsCanceled)
+                                {
+                                    Debug.LogError("SignInAndRetrieveDataWithCredentialAsync was canceled.");
+                                    return;
+                                }
+                                if (task.IsFaulted)
+                                {
+                                    Debug.LogError("SignInAndRetrieveDataWithCredentialAsync encountered an error: " + task.Exception);
+                                    return;
+                                }
+
+                                Firebase.Auth.AuthResult result = task.Result;
+                                Debug.LogFormat("User signed in successfully: {0} ({1})",
+                                    result.User.DisplayName, result.User.UserId);
+
+                                // TODO: Merge app specific details using the newUser and values from the
+                                // previous user, saved above.
+                            });
+
+                            return;
+                        }
+
+                        Firebase.Auth.AuthResult result = task.Result;
+                        Debug.LogFormat("Credentials successfully linked to Firebase user: {0} ({1})",
+                            result.User.DisplayName, result.User.UserId);
+                    });
+                }
+                break;
             case EPlatform.Google:
                 {
                     Social.localUser.Authenticate((bool success) => {

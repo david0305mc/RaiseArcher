@@ -15,9 +15,11 @@ public class FirebaseTest2 : MonoBehaviour
     [SerializeField] private Button logOutButton;
     [SerializeField] private Button connectGoogleButton;
     [SerializeField] private Button connectAppleButton;
+    [SerializeField] private Button connectEmailButton;
     [SerializeField] private GameObject mainObj;
     [SerializeField] private TextMeshProUGUI levelText;
     [SerializeField] private TextMeshProUGUI unoText;
+    [SerializeField] private TMP_InputField emailInput;
 
 
     private CompositeDisposable compositeDisposable = new CompositeDisposable();
@@ -56,6 +58,19 @@ public class FirebaseTest2 : MonoBehaviour
             AuthManager.Instance.LinkAccount(EPlatform.Google);
         });
 
+        connectEmailButton.onClick.AddListener(() =>
+        {
+            UniTask.Create(async () =>
+            {
+                await AuthManager.Instance.LinkAccount(EPlatform.Email);
+                unoText.SetText(AuthManager.Instance.User.UserId);
+            });
+            
+        });
+
+        emailInput.onValueChanged.AddListener(_value => {
+            AuthManager.Instance.EMail = _value;
+        });
         loginButton.gameObject.SetActive(false);
     }
     private void OnDestroy()
@@ -103,7 +118,9 @@ public class FirebaseTest2 : MonoBehaviour
         {
             Debug.Log("SignInWithPlatform");
             await AuthManager.Instance.SignInWithPlatform(platform, cancelltaionTokenSource);
-            unoText.SetText(UserDataManager.Instance.Uno.ToString());
+            //unoText.SetText(UserDataManager.Instance.Uno.ToString());
+            unoText.SetText(AuthManager.Instance.User.UserId);
+            Debug.Log($"AuthManager.Instance.User.UserId {AuthManager.Instance.User.UserId}");
         }
         catch
         {

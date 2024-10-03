@@ -1,11 +1,11 @@
 <?xml version='1.0' encoding='utf-8'?>
-<resources xmlns:tools="http://schemas.android.com/tools" tools:keep="@string/gcm_defaultSenderId,@string/google_storage_bucket,@string/project_id,@string/google_api_key,@string/google_crash_reporting_api_key,@string/google_app_id,@string/default_android_client_id,@string/default_web_client_id">
-  <string name="gcm_defaultSenderId" translatable="false">794346951950</string>
-  <string name="google_storage_bucket" translatable="false">abyssclassic.appspot.com</string>
-  <string name="project_id" translatable="false">abyssclassic</string>
-  <string name="google_api_key" translatable="false">AIzaSyDjF5SP4-P1DZv3V2W4rsYzwTjTOtou-WM</string>
-  <string name="google_crash_reporting_api_key" translatable="false">AIzaSyDjF5SP4-P1DZv3V2W4rsYzwTjTOtou-WM</string>
-  <string name="google_app_id" translatable="false">1:794346951950:android:1484233738dfd6f823335f</string>
-  <string name="default_android_client_id" translatable="false">794346951950-0vbveo3jm7l0mk470k8ddf8nusllh4qd.apps.googleusercontent.com</string>
-  <string name="default_web_client_id" translatable="false">794346951950-0u251h8fq9o4igel3k56r2b8g70c6js6.apps.googleusercontent.com</string>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:keep="@string/firebase_database_url,@string/gcm_defaultSenderId,@string/google_storage_bucket,@string/project_id,@string/google_api_key,@string/google_crash_reporting_api_key,@string/google_app_id,@string/default_web_client_id">
+  <string name="firebase_database_url" translatable="false">https://prototest-fec36-default-rtdb.asia-southeast1.firebasedatabase.app</string>
+  <string name="gcm_defaultSenderId" translatable="false">15470625681</string>
+  <string name="google_storage_bucket" translatable="false">prototest-fec36.appspot.com</string>
+  <string name="project_id" translatable="false">prototest-fec36</string>
+  <string name="google_api_key" translatable="false">AIzaSyBY_ycnyfcc9r9_rOLRxRbuO0ICTwlLf7Y</string>
+  <string name="google_crash_reporting_api_key" translatable="false">AIzaSyBY_ycnyfcc9r9_rOLRxRbuO0ICTwlLf7Y</string>
+  <string name="google_app_id" translatable="false">1:15470625681:android:555912defb5daa9d585030</string>
+  <string name="default_web_client_id" translatable="false">15470625681-cs94jqh5orvjhnl5qc2j7n2q1aled9s4.apps.googleusercontent.com</string>
 </resources>
