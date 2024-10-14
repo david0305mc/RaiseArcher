@@ -17,7 +17,8 @@ public class FirebaseTest2 : MonoBehaviour
     [SerializeField] private Button disConnectGoogleButton;
     [SerializeField] private Button connectAppleButton;
     [SerializeField] private Button connectEmailButton;
-    
+    [SerializeField] private Button disConnectEmailButton;
+
 
     [SerializeField] private GameObject mainObj;
     [SerializeField] private TextMeshProUGUI levelText;
@@ -58,11 +59,19 @@ public class FirebaseTest2 : MonoBehaviour
 
         connectGoogleButton.onClick.AddListener(() =>
         {
-            AuthManager.Instance.LinkAccount(EPlatform.Google).Forget();
+            UniTask.Create(async () =>
+            {
+                AuthManager.Instance.LinkAccount(EPlatform.Google).Forget();
+                UpdatePlatformUI();
+            });
         });
         disConnectGoogleButton.onClick.AddListener(() =>
         {
-            AuthManager.Instance.UnLinkAccount(EPlatform.Google).Forget();
+            UniTask.Create(async () =>
+            {
+                await AuthManager.Instance.UnLinkAccount(EPlatform.Google);
+                UpdatePlatformUI();
+            });
         });
 
         connectEmailButton.onClick.AddListener(() =>
@@ -71,8 +80,16 @@ public class FirebaseTest2 : MonoBehaviour
             {
                 await AuthManager.Instance.LinkAccount(EPlatform.Email);
                 unoText.SetText(AuthManager.Instance.User.UserId);
+                UpdatePlatformUI();
             });
-            
+        });
+        disConnectEmailButton.onClick.AddListener(() =>
+        {
+            UniTask.Create(async () =>
+            {
+                await AuthManager.Instance.UnLinkAccount(EPlatform.Email);
+                UpdatePlatformUI();
+            });
         });
 
         emailInput.onValueChanged.AddListener(_value => {
@@ -108,31 +125,32 @@ public class FirebaseTest2 : MonoBehaviour
         Debug.Log("try SignIn");
         var serverStatus = await ServerAPI.GetServerStatus(cancellationToken: cancelltaionTokenSource.Token);
         loginButton.gameObject.SetActive(false);
-        platformPopup.gameObject.SetActive(true);
-        UniTaskCompletionSource<EPlatform> ucs = new UniTaskCompletionSource<EPlatform>();
-        platformPopup.Set(_platform =>
-        {
-            ucs.TrySetResult(_platform);
-        });
-        var platform = await ucs.Task;
-#if UNITY_EDITOR
-        platform = EPlatform.Guest;
-#endif
-        platformPopup.gameObject.SetActive(false);
-        mainObj.SetActive(true);
 
-        try
+
+        if (!AuthManager.Instance.IsFirebaseSigned())
         {
+            platformPopup.gameObject.SetActive(true);
+            UniTaskCompletionSource<EPlatform> ucs = new UniTaskCompletionSource<EPlatform>();
+            platformPopup.Set(_platform =>
+            {
+                ucs.TrySetResult(_platform);
+            });
+            var platform = await ucs.Task;
+            //#if UNITY_EDITOR
+            //        platform = EPlatform.Guest;
+            //#endif
+            platformPopup.gameObject.SetActive(false);
+
+
+
             Debug.Log("SignInWithPlatform");
             await AuthManager.Instance.SignInWithPlatform(platform, cancelltaionTokenSource);
             //unoText.SetText(UserDataManager.Instance.Uno.ToString());
-            unoText.SetText(AuthManager.Instance.User.UserId);
-            Debug.Log($"AuthManager.Instance.User.UserId {AuthManager.Instance.User.UserId}");
         }
-        catch
-        {
-            Debug.LogError("Error");
-        }
+        mainObj.SetActive(true);
+
+        unoText.SetText(AuthManager.Instance.User.UserId);
+        Debug.Log($"AuthManager.Instance.User.UserId {AuthManager.Instance.User.UserId}");
 
         UserDataManager.Instance.baseData.gold.Subscribe(_gold =>
         {
@@ -152,5 +170,7 @@ public class FirebaseTest2 : MonoBehaviour
         connectGoogleButton.SetActive(!provideList.Contains(EPlatform.Google));
         disConnectGoogleButton.SetActive(provideList.Contains(EPlatform.Google));
 
+        connectEmailButton.SetActive(!provideList.Contains(EPlatform.Email));
+        disConnectEmailButton.SetActive(provideList.Contains(EPlatform.Email));
     }
 }

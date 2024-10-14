@@ -65,7 +65,7 @@ public class AuthManager : Singleton<AuthManager>, IDisposable
             if (p.ProviderId == "apple.com")
                 return EPlatform.Apple;
         }
-        return EPlatform.Unknown;
+        return EPlatform.Guest;
     }
 
     public List<EPlatform> GetProvideTypeList()
@@ -84,6 +84,8 @@ public class AuthManager : Singleton<AuthManager>, IDisposable
                 retList.Add(EPlatform.Google);
             if (p.ProviderId == "apple.com")
                 retList.Add(EPlatform.Apple);
+            if (p.ProviderId == "password")
+                retList.Add(EPlatform.Email);
         }
         return retList;
     }
@@ -119,19 +121,19 @@ public class AuthManager : Singleton<AuthManager>, IDisposable
 
 
         //token = "eyJhbGciOiJSUzI1NiIsImtpZCI6IjhkNzU2OWQyODJkNWM1Mzk5MmNiYWZjZWI2NjBlYmQ0Y2E1OTMxM2EiLCJ0eXAiOiJKV1QifQ.eyJwcm92aWRlcl9pZCI6ImFub255bW91cyIsImlzcyI6Imh0dHBzOi8vc2VjdXJldG9rZW4uZ29vZ2xlLmNvbS9hYnlzc2NsYXNzaWMiLCJhdWQiOiJhYnlzc2NsYXNzaWMiLCJhdXRoX3RpbWUiOjE3Mjg2MzM0ODksInVzZXJfaWQiOiIwMkhoQzdwZ2VDZlQ3Nk5zWVF4dExQTkpLcTQzIiwic3ViIjoiMDJIaEM3cGdlQ2ZUNzZOc1lReHRMUE5KS3E0MyIsImlhdCI6MTcyODYzMzQ5MCwiZXhwIjoxNzI4NjM3MDkwLCJmaXJlYmFzZSI6eyJpZGVudGl0aWVzIjp7fSwic2lnbl9pbl9wcm92aWRlciI6ImFub255bW91cyJ9fQ.aRhp67sXnMbNK4TxtT1lExfk-cVnY9gYM2Kgnyr9tZP3VKReBC0jDu32fyPVYY3I52OWxOXX_EPHOiBKaYzDYX7cNZQRLVIvM5Yc0YTIp4gSdBJX9wdWYNVazvutsFRA2s4MG0nNhgfGf2_b9z6eh9CUz3ORIUW38l8VyO-ub0rcVd0Hnab2mEm8TLx3dIkAKSD1f8Qop6_Vef9hEHtVCDeKdOBC7gC4036wrRx7ebUVQfA4uudpRNBIkHXKqxQSxFJL1x9SQqA-eilO2OMQmG6nHCrVXCes-Tkb0iNmeL90cmKE6z5XaX9NtEcewBKj_GDfXZnec9nnAwDk0wBQfA";
-        var repSignIn = await ServerAPI.SignIn(_platform, token, "KO", string.Empty, default).AttachExternalCancellation(_cts.Token);
-        Debug.Log($"test4");
-        var repLogin = await ServerAPI.Login(repSignIn.uno, repSignIn.token, default).AttachExternalCancellation(_cts.Token);
-        UserDataManager.Instance.Uno = repSignIn.uno;
-        Debug.Log($"test5");
-        if (repSignIn.first_login == 0)
-        {
-            await ServerAPI.LoadFromServer(_cts.Token);
-        }
-        else
-        {
-            // new User
-        }
+        //var repSignIn = await ServerAPI.SignIn(_platform, token, "KO", string.Empty, default).AttachExternalCancellation(_cts.Token);
+        //Debug.Log($"test4");
+        //var repLogin = await ServerAPI.Login(repSignIn.uno, repSignIn.token, default).AttachExternalCancellation(_cts.Token);
+        //UserDataManager.Instance.Uno = repSignIn.uno;
+        //Debug.Log($"test5");
+        //if (repSignIn.first_login == 0)
+        //{
+        //    await ServerAPI.LoadFromServer(_cts.Token);
+        //}
+        //else
+        //{
+        //    // new User
+        //}
         return true;
     }
 
@@ -340,6 +342,11 @@ public class AuthManager : Singleton<AuthManager>, IDisposable
             case EPlatform.Apple:
                 {
                     await Auth.CurrentUser.UnlinkAsync("apple.com");
+                }
+                break;
+            case EPlatform.Email:
+                {
+                    await Auth.CurrentUser.UnlinkAsync("password");
                 }
                 break;
         }
