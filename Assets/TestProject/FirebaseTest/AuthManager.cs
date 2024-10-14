@@ -21,10 +21,11 @@ public class AuthManager : Singleton<AuthManager>, IDisposable
 {
     private FirebaseApp _app;
     public FirebaseAuth Auth { get; set; }
+    public FirebaseAuth SecondAuth { get; set; }
     public FirebaseUser User { get; set; }
     public string EMail { get; set; }
 
-    public readonly string EmailPw = "testEmail";
+    public readonly string EmailPw = "123456789kmc";
     private bool initialized = false;
     public UniTaskCompletionSource<string> pushToken = new UniTaskCompletionSource<string>();
     public async UniTask<bool> Initialize()
@@ -240,6 +241,7 @@ public class AuthManager : Singleton<AuthManager>, IDisposable
         Debug.Log("[Firebase] Setting up Firebase Auth");
         _app = FirebaseApp.DefaultInstance;
         Auth = FirebaseAuth.DefaultInstance;
+        SecondAuth = FirebaseAuth.GetAuth(FirebaseApp.Create(_app.Options, "Secondary"));
         Auth.StateChanged += AuthStateChanged;
         Auth.IdTokenChanged += OnIdTokenChanged;
 
@@ -351,6 +353,45 @@ public class AuthManager : Singleton<AuthManager>, IDisposable
                 break;
         }
     }
+    public async UniTask<AuthResult> LinkWithCredentialAsync(Credential credential)
+    {
+        try
+        {
+            return await Auth.CurrentUser.LinkWithCredentialAsync(credential).AsUniTask();
+        }
+        catch (System.AggregateException e)
+        {
+            foreach (var ex in e.Flatten().InnerExceptions)
+            {
+                var linkEx = ex as FirebaseAccountLinkException;
+                if (linkEx != null)
+                {
+                    Debug.LogErrorFormat("[Firebase/FirebaseAccountLinkException] ErrorCode : {0}\n{1}", linkEx.ErrorCode, linkEx.ToString());
+
+                    credential = linkEx.UserInfo.UpdatedCredential.IsValid()
+                        ? linkEx.UserInfo.UpdatedCredential
+                        : credential;
+
+                    throw new CredentialAlreadyInUseException(credential);
+                }
+
+                var firebaseEx = ex as FirebaseException;
+                if (firebaseEx != null)
+                {
+                    Debug.LogErrorFormat("[Firebase/FirebaseException] ErrorCode : {0}\n{1}", firebaseEx.ErrorCode, firebaseEx.ToString());
+
+                    if (firebaseEx.ErrorCode == (int)AuthError.CredentialAlreadyInUse || firebaseEx.ErrorCode == (int)AuthError.EmailAlreadyInUse)
+                    {
+                        //SignOut(_otherAuth);
+                        throw new CredentialAlreadyInUseException(credential);
+                    }
+                }
+            }
+
+            Debug.LogErrorFormat("[Firebase/Link] {0}", e.ToString());
+            throw e;
+        }
+    }
 
     public async UniTask LinkAccount(EPlatform target)
     {
@@ -366,51 +407,63 @@ public class AuthManager : Singleton<AuthManager>, IDisposable
                 {
                     //var ret = await Auth.SignInWithEmailAndPasswordAsync(EMail, EmailPw).AsUniTask();
                     //return ret.Credential;
+
                     Firebase.Auth.Credential credential = Firebase.Auth.EmailAuthProvider.GetCredential(EMail, EmailPw);
-                    await Auth.CurrentUser.LinkWithCredentialAsync(credential).ContinueWith(task =>
+                    try
+                    { 
+                        var result = await LinkWithCredentialAsync(credential);
+
+                        Debug.LogFormat("Credentials successfully linked to Firebase user: {0} ({1})", result.User.DisplayName, result.User.UserId);
+                    }
+                    catch (CredentialAlreadyInUseException e)
                     {
-                        if (task.IsCanceled)
+
+                        //var signInResult = otherAuth.SignInWithEmailAndPasswordAsync(EMail, EmailPw).AsUniTask();
+
+                        try
                         {
-                            Debug.LogError("LinkWithCredentialAsync was canceled.");
-                            return;
+
+                            //var authResult = await signInResult;
+
+                            //if (signInResult.Status == UniTaskStatus.Canceled)
+                            //{
+                            //    Debug.LogError("SignInAndRetrieveDataWithCredentialAsync was canceled.");
+                            //    return;
+                            //}
+                            //if (signInResult.Status == UniTaskStatus.Faulted)
+                            //{
+                            //    Debug.LogError("SignInAndRetrieveDataWithCredentialAsync encountered an error: " + signInResult.ToString()); ;
+                            //    return;
+                            //}
+
+                            //Debug.LogFormat("User signed in successfully: {0} ({1})", authResult.User.DisplayName, authResult.User.UserId);
+                            var signInResult = SecondAuth.SignInAndRetrieveDataWithCredentialAsync(credential).AsUniTask();
+                            var authResult = await signInResult;
+                            //Debug.LogFormat("User signed in successfully: {0} ({1})", authResult.User.DisplayName, authResult.User.UserId);
+
+                            await SecondAuth.CurrentUser.DeleteAsync();
+                            
+                            try
+                            {
+                                credential = Firebase.Auth.EmailAuthProvider.GetCredential(EMail, EmailPw);
+                                var result = await LinkWithCredentialAsync(credential);
+                                Debug.LogFormat("Credentials successfully linked to Firebase user: {0} ({1})", result.User.DisplayName, result.User.UserId);
+                            }
+                            catch (CredentialAlreadyInUseException e2)
+                            {
+                                Debug.LogError("CredentialAlreadyInUseException ");
+                            }
                         }
-                        if (task.IsFaulted)
+                        catch(Exception e2)
                         {
-                            Debug.LogError("LinkWithCredentialAsync encountered an error: " + task.Exception);
-                            // Gather data for the currently signed in User.
-                            string currentUserId = Auth.CurrentUser.UserId;
-                            string currentEmail = Auth.CurrentUser.Email;
-                            string currentDisplayName = Auth.CurrentUser.DisplayName;
-                            System.Uri currentPhotoUrl = Auth.CurrentUser.PhotoUrl;
-
-                            // Sign in with the new credentials.
-                            Auth.SignInAndRetrieveDataWithCredentialAsync(credential).ContinueWith(task => {
-                                if (task.IsCanceled)
-                                {
-                                    Debug.LogError("SignInAndRetrieveDataWithCredentialAsync was canceled.");
-                                    return;
-                                }
-                                if (task.IsFaulted)
-                                {
-                                    Debug.LogError("SignInAndRetrieveDataWithCredentialAsync encountered an error: " + task.Exception);
-                                    return;
-                                }
-
-                                Firebase.Auth.AuthResult result = task.Result;
-                                Debug.LogFormat("User signed in successfully: {0} ({1})",
-                                    result.User.DisplayName, result.User.UserId);
-
-                                // TODO: Merge app specific details using the newUser and values from the
-                                // previous user, saved above.
-                            });
-
-                            return;
+                            Debug.LogError(e2.ToString());
                         }
+                    
 
-                        Firebase.Auth.AuthResult result = task.Result;
-                        Debug.LogFormat("Credentials successfully linked to Firebase user: {0} ({1})",
-                            result.User.DisplayName, result.User.UserId);
-                    });
+                        //credential = Firebase.Auth.EmailAuthProvider.GetCredential(EMail, EmailPw);
+
+                    }
+
                 }
                 break;
             case EPlatform.Google:
@@ -472,4 +525,12 @@ public class AuthManager : Singleton<AuthManager>, IDisposable
 
 
 
+}
+
+
+public class CredentialAlreadyInUseException : Exception
+{
+    public Credential credential;
+
+    public CredentialAlreadyInUseException(Credential data) => credential = data;
 }
