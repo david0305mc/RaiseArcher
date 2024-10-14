@@ -265,7 +265,13 @@ public static class ServerAPI
 
 #if UNITY_EDITOR
         //[Todo][Classic] 임시 처리
-        value.save_datas.ForEach(x => PlayerPrefs.SetString($"{Uno}/{x.tableName}", x.save_data));
+        value.save_datas.ForEach(x =>
+        {
+            Debug.Log($"Uno {Uno}");
+            Debug.Log($"x.tableName {x.tableName}");
+            Debug.Log($"x.save_data {x.save_data}");
+            PlayerPrefs.SetString($"{Uno}/{x.tableName}", x.save_data);
+        });
 #endif
     }
 }

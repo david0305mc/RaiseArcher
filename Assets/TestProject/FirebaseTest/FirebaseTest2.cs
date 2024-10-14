@@ -14,8 +14,11 @@ public class FirebaseTest2 : MonoBehaviour
     [SerializeField] private Button levelUpButton;
     [SerializeField] private Button logOutButton;
     [SerializeField] private Button connectGoogleButton;
+    [SerializeField] private Button disConnectGoogleButton;
     [SerializeField] private Button connectAppleButton;
     [SerializeField] private Button connectEmailButton;
+    
+
     [SerializeField] private GameObject mainObj;
     [SerializeField] private TextMeshProUGUI levelText;
     [SerializeField] private TextMeshProUGUI unoText;
@@ -55,7 +58,11 @@ public class FirebaseTest2 : MonoBehaviour
 
         connectGoogleButton.onClick.AddListener(() =>
         {
-            AuthManager.Instance.LinkAccount(EPlatform.Google);
+            AuthManager.Instance.LinkAccount(EPlatform.Google).Forget();
+        });
+        disConnectGoogleButton.onClick.AddListener(() =>
+        {
+            AuthManager.Instance.UnLinkAccount(EPlatform.Google).Forget();
         });
 
         connectEmailButton.onClick.AddListener(() =>
@@ -108,9 +115,9 @@ public class FirebaseTest2 : MonoBehaviour
             ucs.TrySetResult(_platform);
         });
         var platform = await ucs.Task;
-//#if UNITY_EDITOR
-//        platform = EPlatform.Guest;
-//#endif
+#if UNITY_EDITOR
+        platform = EPlatform.Guest;
+#endif
         platformPopup.gameObject.SetActive(false);
         mainObj.SetActive(true);
 
@@ -131,10 +138,19 @@ public class FirebaseTest2 : MonoBehaviour
         {
             levelText.SetText(_gold.ToString());
         }).AddTo(compositeDisposable);
-
+        UpdatePlatformUI();
 
         //Debug.Log("AuthenticatePlatform success");
         //string authToken = await AuthManager.Instance.SignInWithGoogle();
         //Debug.Log($"authToken {authToken}");
+    }
+
+    private void UpdatePlatformUI()
+    {
+        List<EPlatform> provideList = AuthManager.Instance.GetProvideTypeList();
+        
+        connectGoogleButton.SetActive(!provideList.Contains(EPlatform.Google));
+        disConnectGoogleButton.SetActive(provideList.Contains(EPlatform.Google));
+
     }
 }

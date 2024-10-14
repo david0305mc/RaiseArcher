@@ -20,7 +20,7 @@ using UnityEngine;
 public class AuthManager : Singleton<AuthManager>, IDisposable
 {
     private FirebaseApp _app;
-    private FirebaseAuth Auth { get; set; }
+    public FirebaseAuth Auth { get; set; }
     public FirebaseUser User { get; set; }
     public string EMail { get; set; }
 
@@ -68,6 +68,26 @@ public class AuthManager : Singleton<AuthManager>, IDisposable
         return EPlatform.Unknown;
     }
 
+    public List<EPlatform> GetProvideTypeList()
+    {
+        List<EPlatform> retList = new List<EPlatform>();
+        if (!IsFirebaseSigned())
+            return retList;
+
+        if (Auth.CurrentUser.IsAnonymous)
+            retList.Add(EPlatform.Guest);
+
+        foreach (var p in Auth.CurrentUser.ProviderData)
+        {
+            Debug.LogFormat("[Firebase/ProviderData] {0}", p.ProviderId);
+            if (p.ProviderId == GoogleAuthProvider.ProviderId)
+                retList.Add(EPlatform.Google);
+            if (p.ProviderId == "apple.com")
+                retList.Add(EPlatform.Apple);
+        }
+        return retList;
+    }
+
     public async UniTask<bool> SignInWithPlatform(EPlatform _platform, CancellationTokenSource _cts)
     {
         if (!IsFirebaseSigned())
@@ -98,20 +118,20 @@ public class AuthManager : Singleton<AuthManager>, IDisposable
         //SetActiveUser("Guest");
 
 
-        //token = "eyJhbGciOiJSUzI1NiIsImtpZCI6ImUwM2E2ODg3YWU3ZjNkMTAyNzNjNjRiMDU3ZTY1MzE1MWUyOTBiNzIiLCJ0eXAiOiJKV1QifQ.eyJwcm92aWRlcl9pZCI6ImFub255bW91cyIsImlzcyI6Imh0dHBzOi8vc2VjdXJldG9rZW4uZ29vZ2xlLmNvbS9hYnlzc2NsYXNzaWMiLCJhdWQiOiJhYnlzc2NsYXNzaWMiLCJhdXRoX3RpbWUiOjE3MjY3Mzk0NjgsInVzZXJfaWQiOiJGV213T2MxdTZDWE9mR05Pb1ZlMWlqaGRLVEEzIiwic3ViIjoiRldtd09jMXU2Q1hPZkdOT29WZTFpamhkS1RBMyIsImlhdCI6MTcyNjc0MDAyMSwiZXhwIjoxNzI2NzQzNjIxLCJmaXJlYmFzZSI6eyJpZGVudGl0aWVzIjp7fSwic2lnbl9pbl9wcm92aWRlciI6ImFub255bW91cyJ9fQ.GryMezHmwqb6GmFbQCMEkiqwSs4MTc5uPRieb43PpK-L7poD6r6fAkFrCPYrwDshQLPlpPoAt6zEZMa8r7b36uvgqseoH8yef2AwKZQqbLdKigJVbe1P3BjOW1HP05u87CwHNVNp-Q-5v8Xw2xuVij3VGdu9rE5QZO1A1fqGvOZTo2QGz2zyjZso6y8FFF3w9nlZEMMWHJwfMTgo90F-587SvYkR1MfTf91bqUoEiEnEXmdvI1hqmAhwhYjdCnbFd9U4uIDFBqQ73Mn6BLCTkslrHINzF1nFbR8hw3IQ57bIW7JJYFlsN-yXyfBKzaXI-onOdllpWDZcwMHLO3IXDg";
-        //var repSignIn = await ServerAPI.SignIn(_platform, token, "KO", string.Empty, default).AttachExternalCancellation(_cts.Token);
-        //Debug.Log($"test4");
-        //var repLogin = await ServerAPI.Login(repSignIn.uno, repSignIn.token, default).AttachExternalCancellation(_cts.Token);
-        //UserDataManager.Instance.Uno = repSignIn.uno;
-        //Debug.Log($"test5");
-        //if (repSignIn.first_login == 0)
-        //{
-        //    await ServerAPI.LoadFromServer(_cts.Token);
-        //}
-        //else
-        //{ 
-        //    // new User
-        //}
+        //token = "eyJhbGciOiJSUzI1NiIsImtpZCI6IjhkNzU2OWQyODJkNWM1Mzk5MmNiYWZjZWI2NjBlYmQ0Y2E1OTMxM2EiLCJ0eXAiOiJKV1QifQ.eyJwcm92aWRlcl9pZCI6ImFub255bW91cyIsImlzcyI6Imh0dHBzOi8vc2VjdXJldG9rZW4uZ29vZ2xlLmNvbS9hYnlzc2NsYXNzaWMiLCJhdWQiOiJhYnlzc2NsYXNzaWMiLCJhdXRoX3RpbWUiOjE3Mjg2MzM0ODksInVzZXJfaWQiOiIwMkhoQzdwZ2VDZlQ3Nk5zWVF4dExQTkpLcTQzIiwic3ViIjoiMDJIaEM3cGdlQ2ZUNzZOc1lReHRMUE5KS3E0MyIsImlhdCI6MTcyODYzMzQ5MCwiZXhwIjoxNzI4NjM3MDkwLCJmaXJlYmFzZSI6eyJpZGVudGl0aWVzIjp7fSwic2lnbl9pbl9wcm92aWRlciI6ImFub255bW91cyJ9fQ.aRhp67sXnMbNK4TxtT1lExfk-cVnY9gYM2Kgnyr9tZP3VKReBC0jDu32fyPVYY3I52OWxOXX_EPHOiBKaYzDYX7cNZQRLVIvM5Yc0YTIp4gSdBJX9wdWYNVazvutsFRA2s4MG0nNhgfGf2_b9z6eh9CUz3ORIUW38l8VyO-ub0rcVd0Hnab2mEm8TLx3dIkAKSD1f8Qop6_Vef9hEHtVCDeKdOBC7gC4036wrRx7ebUVQfA4uudpRNBIkHXKqxQSxFJL1x9SQqA-eilO2OMQmG6nHCrVXCes-Tkb0iNmeL90cmKE6z5XaX9NtEcewBKj_GDfXZnec9nnAwDk0wBQfA";
+        var repSignIn = await ServerAPI.SignIn(_platform, token, "KO", string.Empty, default).AttachExternalCancellation(_cts.Token);
+        Debug.Log($"test4");
+        var repLogin = await ServerAPI.Login(repSignIn.uno, repSignIn.token, default).AttachExternalCancellation(_cts.Token);
+        UserDataManager.Instance.Uno = repSignIn.uno;
+        Debug.Log($"test5");
+        if (repSignIn.first_login == 0)
+        {
+            await ServerAPI.LoadFromServer(_cts.Token);
+        }
+        else
+        {
+            // new User
+        }
         return true;
     }
 
@@ -301,6 +321,28 @@ public class AuthManager : Singleton<AuthManager>, IDisposable
     {
         Auth.StateChanged -= AuthStateChanged;
         Auth = null;
+    }
+
+    public async UniTask UnLinkAccount(EPlatform target)
+    {
+        if (!IsFirebaseSigned())
+            return;
+        if (GetFirebaseSignType() == EPlatform.Guest)
+            return;
+
+        switch (target)
+        {
+            case EPlatform.Google:
+                {
+                    await Auth.CurrentUser.UnlinkAsync(GoogleAuthProvider.ProviderId);
+                }
+                break;
+            case EPlatform.Apple:
+                {
+                    await Auth.CurrentUser.UnlinkAsync("apple.com");
+                }
+                break;
+        }
     }
 
     public async UniTask LinkAccount(EPlatform target)
