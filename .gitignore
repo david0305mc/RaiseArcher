@@ -51,6 +51,7 @@ Assets/Firebase
 Assets/GeneratedLocalRepo
 Assets/ExternalDependencyManager
 Assets/Google-services*
+Assets/StreamingAssets
 
 # Unity3D generated meta files
 *.pidb.meta

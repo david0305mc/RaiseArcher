@@ -21,7 +21,6 @@ public class AuthManager : Singleton<AuthManager>, IDisposable
 {
     private FirebaseApp _app;
     public FirebaseAuth Auth { get; set; }
-    public FirebaseAuth SecondAuth { get; set; }
     public FirebaseUser User { get; set; }
     public string EMail { get; set; }
 
@@ -113,19 +112,19 @@ public class AuthManager : Singleton<AuthManager>, IDisposable
 
 
         //token = "eyJhbGciOiJSUzI1NiIsImtpZCI6IjhkNzU2OWQyODJkNWM1Mzk5MmNiYWZjZWI2NjBlYmQ0Y2E1OTMxM2EiLCJ0eXAiOiJKV1QifQ.eyJwcm92aWRlcl9pZCI6ImFub255bW91cyIsImlzcyI6Imh0dHBzOi8vc2VjdXJldG9rZW4uZ29vZ2xlLmNvbS9hYnlzc2NsYXNzaWMiLCJhdWQiOiJhYnlzc2NsYXNzaWMiLCJhdXRoX3RpbWUiOjE3Mjg2MzM0ODksInVzZXJfaWQiOiIwMkhoQzdwZ2VDZlQ3Nk5zWVF4dExQTkpLcTQzIiwic3ViIjoiMDJIaEM3cGdlQ2ZUNzZOc1lReHRMUE5KS3E0MyIsImlhdCI6MTcyODYzMzQ5MCwiZXhwIjoxNzI4NjM3MDkwLCJmaXJlYmFzZSI6eyJpZGVudGl0aWVzIjp7fSwic2lnbl9pbl9wcm92aWRlciI6ImFub255bW91cyJ9fQ.aRhp67sXnMbNK4TxtT1lExfk-cVnY9gYM2Kgnyr9tZP3VKReBC0jDu32fyPVYY3I52OWxOXX_EPHOiBKaYzDYX7cNZQRLVIvM5Yc0YTIp4gSdBJX9wdWYNVazvutsFRA2s4MG0nNhgfGf2_b9z6eh9CUz3ORIUW38l8VyO-ub0rcVd0Hnab2mEm8TLx3dIkAKSD1f8Qop6_Vef9hEHtVCDeKdOBC7gC4036wrRx7ebUVQfA4uudpRNBIkHXKqxQSxFJL1x9SQqA-eilO2OMQmG6nHCrVXCes-Tkb0iNmeL90cmKE6z5XaX9NtEcewBKj_GDfXZnec9nnAwDk0wBQfA";
-        //var repSignIn = await ServerAPI.SignIn(_platform, token, "KO", string.Empty, default).AttachExternalCancellation(_cts.Token);
-        //Debug.Log($"test4");
-        //var repLogin = await ServerAPI.Login(repSignIn.uno, repSignIn.token, default).AttachExternalCancellation(_cts.Token);
-        //UserDataManager.Instance.Uno = repSignIn.uno;
-        //Debug.Log($"test5");
-        //if (repSignIn.first_login == 0)
-        //{
-        //    await ServerAPI.LoadFromServer(_cts.Token);
-        //}
-        //else
-        //{
-        //    // new User
-        //}
+        var repSignIn = await ServerAPI.SignIn(_platform, token, "KO", string.Empty, default).AttachExternalCancellation(_cts.Token);
+        Debug.Log($"test4");
+        var repLogin = await ServerAPI.Login(repSignIn.uno, repSignIn.token, default).AttachExternalCancellation(_cts.Token);
+        UserDataManager.Instance.Uno = repSignIn.uno;
+        Debug.Log($"test5");
+        if (repSignIn.first_login == 0)
+        {
+            await ServerAPI.LoadFromServer(_cts.Token);
+        }
+        else
+        {
+            // new User
+        }
         return true;
     }
 
@@ -233,7 +232,7 @@ public class AuthManager : Singleton<AuthManager>, IDisposable
         Debug.Log("[Firebase] Setting up Firebase Auth");
         _app = FirebaseApp.DefaultInstance;
         Auth = FirebaseAuth.DefaultInstance;
-        SecondAuth = FirebaseAuth.GetAuth(FirebaseApp.Create(_app.Options, "Secondary"));
+        
         Auth.StateChanged += AuthStateChanged;
         Auth.IdTokenChanged += OnIdTokenChanged;
 
@@ -378,6 +377,7 @@ public class AuthManager : Singleton<AuthManager>, IDisposable
                         throw new CredentialAlreadyInUseException(credential);
                     }
                 }
+                Debug.Log($"link error {ex.Message}");
             }
 
             Debug.LogErrorFormat("[Firebase/Link] {0}", e.ToString());
@@ -407,9 +407,10 @@ public class AuthManager : Singleton<AuthManager>, IDisposable
                     {
                         try
                         {
-                            var signInResult = SecondAuth.SignInAndRetrieveDataWithCredentialAsync(credential).AsUniTask();
+                            var secondAuth = FirebaseAuth.GetAuth(FirebaseApp.Create(_app.Options, "Secondary"));
+                            var signInResult = secondAuth.SignInAndRetrieveDataWithCredentialAsync(credential).AsUniTask();
                             var authResult = await signInResult;
-                            await SecondAuth.CurrentUser.DeleteAsync();
+                            await secondAuth.CurrentUser.DeleteAsync();
                             try
                             {
                                 //credential = Firebase.Auth.EmailAuthProvider.GetCredential(EMail, EmailPw);
@@ -431,67 +432,7 @@ public class AuthManager : Singleton<AuthManager>, IDisposable
                 break;
             case EPlatform.Google:
                 {
-                    UniTaskCompletionSource ucs = new UniTaskCompletionSource();
-                    Social.localUser.Authenticate((bool success) =>
-                    {
-                        if (success)
-                        {
-                            ucs.TrySetResult();
-                            //var authCode = PlayGamesPlatform.Instance.GetServerAuthCode();
-                            //Firebase.Auth.FirebaseAuth auth = Firebase.Auth.FirebaseAuth.DefaultInstance;
-                            //Firebase.Auth.Credential credential =
-                            //    Firebase.Auth.PlayGamesAuthProvider.GetCredential(authCode);
-
-                            //auth.CurrentUser.LinkWithCredentialAsync(credential).ContinueWith(task => {
-                            //    if (task.IsCanceled)
-                            //    {
-                            //        Debug.LogError("LinkWithCredentialAsync was canceled.");
-                            //        return;
-                            //    }
-                            //    if (task.IsFaulted)
-                            //    {
-                            //        Debug.LogError("LinkWithCredentialAsync encountered an error: " + task.Exception);
-
-                            //        // Sign in with the new credentials.
-                            //        auth.SignInAndRetrieveDataWithCredentialAsync(credential).ContinueWith(task => {
-                            //            if (task.IsCanceled)
-                            //            {
-                            //                Debug.LogError("SignInAndRetrieveDataWithCredentialAsync was canceled.");
-                            //                return;
-                            //            }
-                            //            if (task.IsFaulted)
-                            //            {
-                            //                Debug.LogError("SignInAndRetrieveDataWithCredentialAsync encountered an error: " + task.Exception);
-                            //                return;
-                            //            }
-
-                            //            Firebase.Auth.AuthResult result = task.Result;
-                            //            Debug.LogFormat("User signed in successfully: {0} ({1})",
-                            //                result.User.DisplayName, result.User.UserId);
-
-                            //            // TODO: Merge app specific details using the newUser and values from the
-                            //            // previous user, saved above.
-                            //        });
-
-
-                            //        return;
-                            //    }
-
-                            //    Firebase.Auth.AuthResult result = task.Result;
-                            //    Debug.LogFormat("Credentials successfully linked to Firebase user: {0} ({1})",
-                            //        result.User.DisplayName, result.User.UserId);
-                            //});
-                        }
-                        else
-                        {
-                            Debug.LogError("Social.localUser.Authenticate Error");
-                        }
-                    });
-
-                    await ucs.Task;
-                    var authCode = PlayGamesPlatform.Instance.GetServerAuthCode();
-                    Firebase.Auth.Credential credential = Firebase.Auth.PlayGamesAuthProvider.GetCredential(authCode);
-
+                    var credential = await GetGoogleCredential();
                     try
                     {
                         var result = await LinkWithCredentialAsync(credential);
@@ -501,12 +442,12 @@ public class AuthManager : Singleton<AuthManager>, IDisposable
                     {
                         try
                         {
-                            var signInResult = SecondAuth.SignInAndRetrieveDataWithCredentialAsync(credential).AsUniTask();
+                            var secondAuth = FirebaseAuth.GetAuth(FirebaseApp.Create(_app.Options, "Secondary"));
+                            var signInResult = secondAuth.SignInAndRetrieveDataWithCredentialAsync(credential).AsUniTask();
                             var authResult = await signInResult;
-                            await SecondAuth.CurrentUser.DeleteAsync();
+                            await secondAuth.CurrentUser.DeleteAsync();
                             try
                             {
-                                //credential = Firebase.Auth.EmailAuthProvider.GetCredential(EMail, EmailPw);
                                 var result = await LinkWithCredentialAsync(credential);
                                 Debug.LogFormat("Credentials successfully linked to Firebase user: {0} ({1})", result.User.DisplayName, result.User.UserId);
                             }
@@ -519,6 +460,10 @@ public class AuthManager : Singleton<AuthManager>, IDisposable
                         {
                             Debug.LogError(e2.ToString());
                         }
+                    }
+                    catch
+                    {
+                        Debug.LogError("Other catch");
                     }
 
                 }

@@ -61,7 +61,7 @@ public class FirebaseTest2 : MonoBehaviour
         {
             UniTask.Create(async () =>
             {
-                AuthManager.Instance.LinkAccount(EPlatform.Google).Forget();
+                await AuthManager.Instance.LinkAccount(EPlatform.Google);
                 UpdatePlatformUI();
             });
         });
@@ -122,10 +122,8 @@ public class FirebaseTest2 : MonoBehaviour
     }
     private async UniTaskVoid StartGame()
     {
-        Debug.Log("try SignIn");
         var serverStatus = await ServerAPI.GetServerStatus(cancellationToken: cancelltaionTokenSource.Token);
         loginButton.gameObject.SetActive(false);
-
 
         if (!AuthManager.Instance.IsFirebaseSigned())
         {
@@ -136,31 +134,20 @@ public class FirebaseTest2 : MonoBehaviour
                 ucs.TrySetResult(_platform);
             });
             var platform = await ucs.Task;
-            //#if UNITY_EDITOR
-            //        platform = EPlatform.Guest;
-            //#endif
             platformPopup.gameObject.SetActive(false);
 
-
-
-            Debug.Log("SignInWithPlatform");
             await AuthManager.Instance.SignInWithPlatform(platform, cancelltaionTokenSource);
-            //unoText.SetText(UserDataManager.Instance.Uno.ToString());
             UpdatePlatformUI();
         }
         mainObj.SetActive(true);
 
         unoText.SetText(AuthManager.Instance.User.UserId);
-        Debug.Log($"AuthManager.Instance.User.UserId {AuthManager.Instance.User.UserId}");
 
         UserDataManager.Instance.baseData.gold.Subscribe(_gold =>
         {
             levelText.SetText(_gold.ToString());
         }).AddTo(compositeDisposable);
         UpdatePlatformUI();
-        //Debug.Log("AuthenticatePlatform success");
-        //string authToken = await AuthManager.Instance.SignInWithGoogle();
-        //Debug.Log($"authToken {authToken}");
     }
 
     private void UpdatePlatformUI()
