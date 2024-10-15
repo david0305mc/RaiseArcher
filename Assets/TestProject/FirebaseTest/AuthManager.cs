@@ -52,31 +52,11 @@ public class AuthManager : Singleton<AuthManager>, IDisposable
         return Auth != null && Auth.CurrentUser != null;
     }
 
-    public EPlatform GetFirebaseSignType()
-    {
-        if (!IsFirebaseSigned())
-            return EPlatform.None;
-        if (Auth.CurrentUser.IsAnonymous)
-            return EPlatform.Guest;
-        foreach (var p in Auth.CurrentUser.ProviderData)
-        {
-            Debug.LogFormat("[Firebase/ProviderData] {0}", p.ProviderId);
-            if (p.ProviderId == GoogleAuthProvider.ProviderId)
-                return EPlatform.Google;
-            if (p.ProviderId == "apple.com")
-                return EPlatform.Apple;
-        }
-        return EPlatform.Guest;
-    }
-
     public List<EPlatform> GetProvideTypeList()
     {
         List<EPlatform> retList = new List<EPlatform>();
         if (!IsFirebaseSigned())
             return retList;
-
-        if (Auth.CurrentUser.IsAnonymous)
-            retList.Add(EPlatform.Guest);
 
         foreach (var p in Auth.CurrentUser.ProviderData)
         {
@@ -88,7 +68,18 @@ public class AuthManager : Singleton<AuthManager>, IDisposable
             if (p.ProviderId == "password")
                 retList.Add(EPlatform.Email);
         }
+        if (retList.Count == 0)
+        {
+            //if (Auth.CurrentUser.IsAnonymous)    
+            retList.Add(EPlatform.Guest);
+        }
         return retList;
+    }
+
+    public bool HasProvideType(EPlatform _platform)
+    {
+        var list = GetProvideTypeList();
+        return list.Contains(_platform);
     }
 
     public async UniTask<bool> SignInWithPlatform(EPlatform _platform, CancellationTokenSource _cts)
@@ -331,9 +322,9 @@ public class AuthManager : Singleton<AuthManager>, IDisposable
     {
         if (!IsFirebaseSigned())
             return;
-        if (GetFirebaseSignType() == EPlatform.Guest)
+        if (HasProvideType(EPlatform.Guest))
             return;
-
+        
         switch (target)
         {
             case EPlatform.Google:
@@ -398,7 +389,7 @@ public class AuthManager : Singleton<AuthManager>, IDisposable
         if (!IsFirebaseSigned())
             return;
 
-        if (GetFirebaseSignType() != EPlatform.Guest)
+        if (!HasProvideType(EPlatform.Guest))
             return;
 
         switch (target)

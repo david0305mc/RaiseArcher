@@ -146,6 +146,7 @@ public class FirebaseTest2 : MonoBehaviour
             Debug.Log("SignInWithPlatform");
             await AuthManager.Instance.SignInWithPlatform(platform, cancelltaionTokenSource);
             //unoText.SetText(UserDataManager.Instance.Uno.ToString());
+            UpdatePlatformUI();
         }
         mainObj.SetActive(true);
 
@@ -157,7 +158,6 @@ public class FirebaseTest2 : MonoBehaviour
             levelText.SetText(_gold.ToString());
         }).AddTo(compositeDisposable);
         UpdatePlatformUI();
-
         //Debug.Log("AuthenticatePlatform success");
         //string authToken = await AuthManager.Instance.SignInWithGoogle();
         //Debug.Log($"authToken {authToken}");
