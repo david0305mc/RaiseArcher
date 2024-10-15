@@ -177,9 +177,10 @@ public class AuthManager : Singleton<AuthManager>, IDisposable
         }
         catch
         {
-            Debug.Log("Retry");
-            await UniTask.Delay(100);
-            await SignInWithGoogle();
+            //Debug.Log("Retry");
+            //await UniTask.Delay(1000);
+            //await SignInWithGoogle();
+           
         }
     }
 
@@ -396,47 +397,22 @@ public class AuthManager : Singleton<AuthManager>, IDisposable
         {
             case EPlatform.Email:
                 {
-                    //var ret = await Auth.SignInWithEmailAndPasswordAsync(EMail, EmailPw).AsUniTask();
-                    //return ret.Credential;
-
                     Firebase.Auth.Credential credential = Firebase.Auth.EmailAuthProvider.GetCredential(EMail, EmailPw);
                     try
                     { 
                         var result = await LinkWithCredentialAsync(credential);
-
                         Debug.LogFormat("Credentials successfully linked to Firebase user: {0} ({1})", result.User.DisplayName, result.User.UserId);
                     }
                     catch (CredentialAlreadyInUseException e)
                     {
-
-                        //var signInResult = otherAuth.SignInWithEmailAndPasswordAsync(EMail, EmailPw).AsUniTask();
-
                         try
                         {
-
-                            //var authResult = await signInResult;
-
-                            //if (signInResult.Status == UniTaskStatus.Canceled)
-                            //{
-                            //    Debug.LogError("SignInAndRetrieveDataWithCredentialAsync was canceled.");
-                            //    return;
-                            //}
-                            //if (signInResult.Status == UniTaskStatus.Faulted)
-                            //{
-                            //    Debug.LogError("SignInAndRetrieveDataWithCredentialAsync encountered an error: " + signInResult.ToString()); ;
-                            //    return;
-                            //}
-
-                            //Debug.LogFormat("User signed in successfully: {0} ({1})", authResult.User.DisplayName, authResult.User.UserId);
                             var signInResult = SecondAuth.SignInAndRetrieveDataWithCredentialAsync(credential).AsUniTask();
                             var authResult = await signInResult;
-                            //Debug.LogFormat("User signed in successfully: {0} ({1})", authResult.User.DisplayName, authResult.User.UserId);
-
                             await SecondAuth.CurrentUser.DeleteAsync();
-                            
                             try
                             {
-                                credential = Firebase.Auth.EmailAuthProvider.GetCredential(EMail, EmailPw);
+                                //credential = Firebase.Auth.EmailAuthProvider.GetCredential(EMail, EmailPw);
                                 var result = await LinkWithCredentialAsync(credential);
                                 Debug.LogFormat("Credentials successfully linked to Firebase user: {0} ({1})", result.User.DisplayName, result.User.UserId);
                             }
@@ -449,65 +425,101 @@ public class AuthManager : Singleton<AuthManager>, IDisposable
                         {
                             Debug.LogError(e2.ToString());
                         }
-                    
-
-                        //credential = Firebase.Auth.EmailAuthProvider.GetCredential(EMail, EmailPw);
-
                     }
 
                 }
                 break;
             case EPlatform.Google:
                 {
-                    Social.localUser.Authenticate((bool success) => {
+                    UniTaskCompletionSource ucs = new UniTaskCompletionSource();
+                    Social.localUser.Authenticate((bool success) =>
+                    {
                         if (success)
                         {
-                            var authCode = PlayGamesPlatform.Instance.GetServerAuthCode();
-                            Firebase.Auth.FirebaseAuth auth = Firebase.Auth.FirebaseAuth.DefaultInstance;
-                            Firebase.Auth.Credential credential =
-                                Firebase.Auth.PlayGamesAuthProvider.GetCredential(authCode);
+                            ucs.TrySetResult();
+                            //var authCode = PlayGamesPlatform.Instance.GetServerAuthCode();
+                            //Firebase.Auth.FirebaseAuth auth = Firebase.Auth.FirebaseAuth.DefaultInstance;
+                            //Firebase.Auth.Credential credential =
+                            //    Firebase.Auth.PlayGamesAuthProvider.GetCredential(authCode);
 
-                            auth.CurrentUser.LinkWithCredentialAsync(credential).ContinueWith(task => {
-                                if (task.IsCanceled)
-                                {
-                                    Debug.LogError("LinkWithCredentialAsync was canceled.");
-                                    return;
-                                }
-                                if (task.IsFaulted)
-                                {
-                                    Debug.LogError("LinkWithCredentialAsync encountered an error: " + task.Exception);
+                            //auth.CurrentUser.LinkWithCredentialAsync(credential).ContinueWith(task => {
+                            //    if (task.IsCanceled)
+                            //    {
+                            //        Debug.LogError("LinkWithCredentialAsync was canceled.");
+                            //        return;
+                            //    }
+                            //    if (task.IsFaulted)
+                            //    {
+                            //        Debug.LogError("LinkWithCredentialAsync encountered an error: " + task.Exception);
 
-                                    // Sign in with the new credentials.
-                                    auth.SignInAndRetrieveDataWithCredentialAsync(credential).ContinueWith(task => {
-                                        if (task.IsCanceled)
-                                        {
-                                            Debug.LogError("SignInAndRetrieveDataWithCredentialAsync was canceled.");
-                                            return;
-                                        }
-                                        if (task.IsFaulted)
-                                        {
-                                            Debug.LogError("SignInAndRetrieveDataWithCredentialAsync encountered an error: " + task.Exception);
-                                            return;
-                                        }
+                            //        // Sign in with the new credentials.
+                            //        auth.SignInAndRetrieveDataWithCredentialAsync(credential).ContinueWith(task => {
+                            //            if (task.IsCanceled)
+                            //            {
+                            //                Debug.LogError("SignInAndRetrieveDataWithCredentialAsync was canceled.");
+                            //                return;
+                            //            }
+                            //            if (task.IsFaulted)
+                            //            {
+                            //                Debug.LogError("SignInAndRetrieveDataWithCredentialAsync encountered an error: " + task.Exception);
+                            //                return;
+                            //            }
 
-                                        Firebase.Auth.AuthResult result = task.Result;
-                                        Debug.LogFormat("User signed in successfully: {0} ({1})",
-                                            result.User.DisplayName, result.User.UserId);
+                            //            Firebase.Auth.AuthResult result = task.Result;
+                            //            Debug.LogFormat("User signed in successfully: {0} ({1})",
+                            //                result.User.DisplayName, result.User.UserId);
 
-                                        // TODO: Merge app specific details using the newUser and values from the
-                                        // previous user, saved above.
-                                    });
+                            //            // TODO: Merge app specific details using the newUser and values from the
+                            //            // previous user, saved above.
+                            //        });
 
 
-                                    return;
-                                }
+                            //        return;
+                            //    }
 
-                                Firebase.Auth.AuthResult result = task.Result;
-                                Debug.LogFormat("Credentials successfully linked to Firebase user: {0} ({1})",
-                                    result.User.DisplayName, result.User.UserId);
-                            });
+                            //    Firebase.Auth.AuthResult result = task.Result;
+                            //    Debug.LogFormat("Credentials successfully linked to Firebase user: {0} ({1})",
+                            //        result.User.DisplayName, result.User.UserId);
+                            //});
+                        }
+                        else
+                        {
+                            Debug.LogError("Social.localUser.Authenticate Error");
                         }
                     });
+
+                    await ucs.Task;
+                    var authCode = PlayGamesPlatform.Instance.GetServerAuthCode();
+                    Firebase.Auth.Credential credential = Firebase.Auth.PlayGamesAuthProvider.GetCredential(authCode);
+
+                    try
+                    {
+                        var result = await LinkWithCredentialAsync(credential);
+                        Debug.LogFormat("Credentials successfully linked to Firebase user: {0} ({1})", result.User.DisplayName, result.User.UserId);
+                    }
+                    catch (CredentialAlreadyInUseException e)
+                    {
+                        try
+                        {
+                            var signInResult = SecondAuth.SignInAndRetrieveDataWithCredentialAsync(credential).AsUniTask();
+                            var authResult = await signInResult;
+                            await SecondAuth.CurrentUser.DeleteAsync();
+                            try
+                            {
+                                //credential = Firebase.Auth.EmailAuthProvider.GetCredential(EMail, EmailPw);
+                                var result = await LinkWithCredentialAsync(credential);
+                                Debug.LogFormat("Credentials successfully linked to Firebase user: {0} ({1})", result.User.DisplayName, result.User.UserId);
+                            }
+                            catch (CredentialAlreadyInUseException e2)
+                            {
+                                Debug.LogError("CredentialAlreadyInUseException ");
+                            }
+                        }
+                        catch (Exception e2)
+                        {
+                            Debug.LogError(e2.ToString());
+                        }
+                    }
 
                 }
                 break;
