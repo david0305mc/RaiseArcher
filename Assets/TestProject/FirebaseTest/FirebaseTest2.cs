@@ -135,12 +135,31 @@ public class FirebaseTest2 : MonoBehaviour
             });
             var platform = await ucs.Task;
             platformPopup.gameObject.SetActive(false);
+            try
+            {
+                await AuthManager.Instance.SignInWithPlatform(platform, cancelltaionTokenSource);
+            }
+            catch
+            {
+                await UniTask.Delay(500);
+                platformPopup.gameObject.SetActive(true);
+                Debug.LogError("Fail Retry");
+                return;
+            }
+        }
 
-            await AuthManager.Instance.SignInWithPlatform(platform, cancelltaionTokenSource);
+        string token = await AuthManager.Instance.GetFirebaseToken(cancelltaionTokenSource);
+        try
+        {
+            await AuthManager.Instance.LoginGameServer(AuthManager.Instance.GetProviedType(), token, cancelltaionTokenSource);
             UpdatePlatformUI();
         }
+        catch
+        {
+            Debug.LogError("Connect Failed");
+            return;
+        }
         mainObj.SetActive(true);
-
         unoText.SetText(AuthManager.Instance.User.UserId);
 
         UserDataManager.Instance.baseData.gold.Subscribe(_gold =>

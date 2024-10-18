@@ -75,46 +75,55 @@ public class AuthManager : Singleton<AuthManager>, IDisposable
         return retList;
     }
 
+    public EPlatform GetProviedType()       
+    {
+        var platformList = GetProvideTypeList();
+        if (platformList.Contains(EPlatform.Google))
+            return EPlatform.Google;
+        if (platformList.Contains(EPlatform.Apple))
+            return EPlatform.Apple;
+        return EPlatform.Guest;
+    }
     public bool HasProvideType(EPlatform _platform)
     {
         var list = GetProvideTypeList();
         return list.Contains(_platform);
     }
 
-    public async UniTask<bool> SignInWithPlatform(EPlatform _platform, CancellationTokenSource _cts)
+    public async UniTask SignInWithPlatform(EPlatform _platform, CancellationTokenSource _cts)
     {
-        if (!IsFirebaseSigned())
-        {
-            Debug.Log("SignInWithPlatform 01");
-            Credential credential;
-            switch (_platform)
-            {
-                case EPlatform.Google:
-                    await SignInWithGoogle().AttachExternalCancellation(_cts.Token);
-                    break;
-                case EPlatform.Guest:
-                    await SignInWithGuest().AttachExternalCancellation(_cts.Token);
-                    break;
-                case EPlatform.Email:
-                    await SignInWithEmail().AttachExternalCancellation(_cts.Token);
-                    break;
-                default:
-                    await SignInWithGuest().AttachExternalCancellation(_cts.Token);
-                    break;
-            }
-            Debug.Log($"test1");
-        }
-        Debug.Log($"test2");
-        var token = await Auth.CurrentUser.TokenAsync(true).AsUniTask().AttachExternalCancellation(_cts.Token);
+        Debug.Log("SignInWithPlatform 01");
         
-        Debug.Log($"Token {token}");
-        //SetActiveUser("Guest");
+        switch (_platform)
+        {
+            case EPlatform.Google:
+                {
+                    Credential credential = await GetGoogleCredential();
+                    await Auth.SignInWithCredentialAsync(credential).AsUniTask().AttachExternalCancellation(_cts.Token);
+                }
+                break;
+            case EPlatform.Guest:
+                await Auth.SignInAnonymouslyAsync().AsUniTask().AttachExternalCancellation(_cts.Token);
+                break;
+            case EPlatform.Email:
+                await Auth.SignInWithEmailAndPasswordAsync(EMail, EmailPw).AsUniTask().AttachExternalCancellation(_cts.Token);
+                break;
+            default:
+                await Auth.SignInAnonymouslyAsync().AsUniTask().AttachExternalCancellation(_cts.Token);
+                break;
+        }
+        Debug.Log($"test1");
+    }
+    public async UniTask<string> GetFirebaseToken(CancellationTokenSource _cts)
+    {
+        return await Auth.CurrentUser.TokenAsync(true).AsUniTask().AttachExternalCancellation(_cts.Token);
+    }
 
-
-        //token = "eyJhbGciOiJSUzI1NiIsImtpZCI6IjhkNzU2OWQyODJkNWM1Mzk5MmNiYWZjZWI2NjBlYmQ0Y2E1OTMxM2EiLCJ0eXAiOiJKV1QifQ.eyJwcm92aWRlcl9pZCI6ImFub255bW91cyIsImlzcyI6Imh0dHBzOi8vc2VjdXJldG9rZW4uZ29vZ2xlLmNvbS9hYnlzc2NsYXNzaWMiLCJhdWQiOiJhYnlzc2NsYXNzaWMiLCJhdXRoX3RpbWUiOjE3Mjg2MzM0ODksInVzZXJfaWQiOiIwMkhoQzdwZ2VDZlQ3Nk5zWVF4dExQTkpLcTQzIiwic3ViIjoiMDJIaEM3cGdlQ2ZUNzZOc1lReHRMUE5KS3E0MyIsImlhdCI6MTcyODYzMzQ5MCwiZXhwIjoxNzI4NjM3MDkwLCJmaXJlYmFzZSI6eyJpZGVudGl0aWVzIjp7fSwic2lnbl9pbl9wcm92aWRlciI6ImFub255bW91cyJ9fQ.aRhp67sXnMbNK4TxtT1lExfk-cVnY9gYM2Kgnyr9tZP3VKReBC0jDu32fyPVYY3I52OWxOXX_EPHOiBKaYzDYX7cNZQRLVIvM5Yc0YTIp4gSdBJX9wdWYNVazvutsFRA2s4MG0nNhgfGf2_b9z6eh9CUz3ORIUW38l8VyO-ub0rcVd0Hnab2mEm8TLx3dIkAKSD1f8Qop6_Vef9hEHtVCDeKdOBC7gC4036wrRx7ebUVQfA4uudpRNBIkHXKqxQSxFJL1x9SQqA-eilO2OMQmG6nHCrVXCes-Tkb0iNmeL90cmKE6z5XaX9NtEcewBKj_GDfXZnec9nnAwDk0wBQfA";
-        var repSignIn = await ServerAPI.SignIn(_platform, token, "KO", string.Empty, default).AttachExternalCancellation(_cts.Token);
+    public async UniTask LoginGameServer(EPlatform _platform, string _firebaseToken, CancellationTokenSource _cts)
+    {
+        var repSignIn = await ServerAPI.SignIn(_platform, _firebaseToken, "KO", string.Empty, _cts.Token);
         Debug.Log($"test4");
-        var repLogin = await ServerAPI.Login(repSignIn.uno, repSignIn.token, default).AttachExternalCancellation(_cts.Token);
+        var repLogin = await ServerAPI.Login(repSignIn.uno, repSignIn.token, _cts.Token);
         UserDataManager.Instance.Uno = repSignIn.uno;
         Debug.Log($"test5");
         if (repSignIn.first_login == 0)
@@ -125,7 +134,6 @@ public class AuthManager : Singleton<AuthManager>, IDisposable
         {
             // new User
         }
-        return true;
     }
 
     private async UniTask<Credential> GetGoogleCredential()
@@ -166,23 +174,7 @@ public class AuthManager : Singleton<AuthManager>, IDisposable
         return GoogleAuthProvider.GetCredential(signInUser.IdToken, null);
 #endif
     }
-    public async UniTask SignInWithGoogle()
-    {
-        try
-        {
-            Debug.Log("SignInWithGoogle");
-            var credential = await GetGoogleCredential();
-            await Auth.SignInWithCredentialAsync(credential).AsUniTask();
-        }
-        catch
-        {
-            //Debug.Log("Retry");
-            //await UniTask.Delay(1000);
-            //await SignInWithGoogle();
-           
-        }
-    }
-
+    
     public void SignOut()
     {
 #if !UNITY_EDITOR && ENABLE_GOOGLE_PLAY
@@ -432,40 +424,46 @@ public class AuthManager : Singleton<AuthManager>, IDisposable
                 break;
             case EPlatform.Google:
                 {
-                    var credential = await GetGoogleCredential();
                     try
                     {
-                        var result = await LinkWithCredentialAsync(credential);
-                        Debug.LogFormat("Credentials successfully linked to Firebase user: {0} ({1})", result.User.DisplayName, result.User.UserId);
-                    }
-                    catch (CredentialAlreadyInUseException e)
-                    {
+                        var credential = await GetGoogleCredential();
                         try
                         {
-                            var secondAuth = FirebaseAuth.GetAuth(FirebaseApp.Create(_app.Options, "Secondary"));
-                            var signInResult = secondAuth.SignInAndRetrieveDataWithCredentialAsync(credential).AsUniTask();
-                            var authResult = await signInResult;
-                            await secondAuth.CurrentUser.DeleteAsync();
+                            var result = await LinkWithCredentialAsync(credential);
+                            Debug.LogFormat("Credentials successfully linked to Firebase user: {0} ({1})", result.User.DisplayName, result.User.UserId);
+                        }
+                        catch (CredentialAlreadyInUseException e)
+                        {
                             try
                             {
-                                var result = await LinkWithCredentialAsync(credential);
-                                Debug.LogFormat("Credentials successfully linked to Firebase user: {0} ({1})", result.User.DisplayName, result.User.UserId);
+                                var secondAuth = FirebaseAuth.GetAuth(FirebaseApp.Create(_app.Options, "Secondary"));
+                                var signInResult = secondAuth.SignInAndRetrieveDataWithCredentialAsync(credential).AsUniTask();
+                                var authResult = await signInResult;
+                                await secondAuth.CurrentUser.DeleteAsync();
+                                try
+                                {
+                                    var result = await LinkWithCredentialAsync(credential);
+                                    Debug.LogFormat("Credentials successfully linked to Firebase user: {0} ({1})", result.User.DisplayName, result.User.UserId);
+                                }
+                                catch (CredentialAlreadyInUseException e2)
+                                {
+                                    Debug.LogError("CredentialAlreadyInUseException ");
+                                }
                             }
-                            catch (CredentialAlreadyInUseException e2)
+                            catch (Exception e2)
                             {
-                                Debug.LogError("CredentialAlreadyInUseException ");
+                                Debug.LogError(e2.ToString());
                             }
                         }
-                        catch (Exception e2)
+                        catch
                         {
-                            Debug.LogError(e2.ToString());
+                            Debug.LogError("Other catch");
                         }
                     }
                     catch
                     {
-                        Debug.LogError("Other catch");
+                        Debug.LogError("Error GetGoogleCredential");
                     }
-
                 }
                 break;
         }
