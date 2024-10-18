@@ -78,8 +78,8 @@ public partial class GameManager : SingletonMono<GameManager>
             var main = ps.main;
             if (main.loop)
             {
-                ps.gameObject.AddComponent<CFX_AutoStopLoopedEffect>();
-                ps.gameObject.AddComponent<CFX_AutoDestructShuriken>();
+                //ps.gameObject.AddComponent<CFX_AutoStopLoopedEffect>();
+                //ps.gameObject.AddComponent<CFX_AutoDestructShuriken>();
             }
         }
     }
