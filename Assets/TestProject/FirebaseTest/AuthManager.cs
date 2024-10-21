@@ -124,15 +124,57 @@ public class AuthManager : Singleton<AuthManager>, IDisposable
         var repSignIn = await ServerAPI.SignIn(_platform, _firebaseToken, "KO", string.Empty, _cts.Token);
         Debug.Log($"test4");
         var repLogin = await ServerAPI.Login(repSignIn.uno, repSignIn.token, _cts.Token);
-        UserDataManager.Instance.Uno = repSignIn.uno;
+        
         Debug.Log($"test5");
+        UserDataManager.Instance.LoadLocalData(repSignIn.uno);
         if (repSignIn.first_login == 0)
         {
-            await ServerAPI.LoadFromServer(_cts.Token);
+            // To Do : 시간 비교 후 동기화
+
+            SaveData data = await ServerAPI.LoadFromServer(_cts.Token);
+            if (data == null)
+            {
+                Debug.Log("data == null");
+                return;
+            }
+            
+            //UserData.Instance.LoadLocalData();
+            
+            var versionRaw = data.save_datas.Find(item => item.tableName == "DBVersion");
+            if (versionRaw == null)
+            {
+                Debug.LogError("versionRaw == null");
+                return;
+            }
+            
+            DBVersion dbVersion = JsonUtility.FromJson<DBVersion>(versionRaw.save_data);
+            // 로컬 기록과 비교 싱크
+
+            if (UserDataManager.Instance.dbVersion.dbVersion < dbVersion.dbVersion)
+            {
+                UserDataManager.Instance.dbVersion.dbVersion = dbVersion.dbVersion;
+                // apply serverData
+                foreach (var item in data.save_datas)
+                {
+                    if (item.tableName == "BaseData")
+                    {
+                        UserDataManager.Instance.baseData = UserDataManager.Instance.baseData.ConvertToObject<BaseData>(item.save_data);
+                    }
+                    else if (item.tableName == "InventoryData")
+                    {
+                        UserDataManager.Instance.inventoryData = UserDataManager.Instance.baseData.ConvertToObject<InventoryData>(item.save_data);
+                    }
+                }
+                Debug.Log(UserDataManager.Instance.baseData.level);
+                Debug.Log($"itemCount : {UserDataManager.Instance.inventoryData.itemList.Count}");
+                UserDataManager.Instance.SaveLocalData();
+            }
+
         }
         else
         {
             // new User
+            UserDataManager.Instance.CreateNewUser(repSignIn.uno);
         }
     }
 

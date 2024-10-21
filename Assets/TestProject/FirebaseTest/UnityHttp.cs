@@ -301,23 +301,23 @@ public static class UnityHttp
                     //응답 error 기본 동작 : 앱 종료                                        
                     Debug.LogErrorFormat("[UnityHttp/Send/Recv] {0} Error code : {1}", id, resp.error.code);
 
-//                    if (resp.error.code == ServerErrorCode.AUTH_SESSION_NOT_MATCHING)
-//                    {
-//                        //세션 변경된 경우 강제 인트로 이동 처리
-//                        //await GameAPI.ShowMessage(resp.error, cancellationToken);
+                    //                    if (resp.error.code == ServerErrorCode.AUTH_SESSION_NOT_MATCHING)
+                    //                    {
+                    //                        //세션 변경된 경우 강제 인트로 이동 처리
+                    //                        //await GameAPI.ShowMessage(resp.error, cancellationToken);
 
-//                        Application.Quit();
-//#if UNITY_EDITOR
-//                        UnityEditor.EditorApplication.isPlaying = false;
-//#endif
-//                        throw new System.OperationCanceledException();
-//                    }
+                    Application.Quit();
+#if UNITY_EDITOR
+                    UnityEditor.EditorApplication.isPlaying = false;
+#endif
+                    throw new System.OperationCanceledException();
+                    //                    }
 
-//                    var exception = new UnityHttpGameServerException(resp);
-//                    if (data.defaultExceptionHandling)
-//                        await GameAPI.Exception(exception, cancellationToken);
+                    //                    var exception = new UnityHttpGameServerException(resp);
+                    //                    if (data.defaultExceptionHandling)
+                    //                        await GameAPI.Exception(exception, cancellationToken);
 
-//                    throw exception;
+                    //                    throw exception;
                 }
 
                 if (resp.alert != null)

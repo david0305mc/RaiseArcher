@@ -28,9 +28,9 @@ public static class ServerAPI
     private static bool useCompress = false;
     public static Dictionary<string, int> tableIdx = new Dictionary<string, int>()
     {
-        {"BaseData", 1},
-
-        {"InventoryData", 2},
+        {"DBVersion", 1},
+        {"BaseData", 2},
+        {"InventoryData", 3},
     };
     private static Dictionary<int, string> _tableNames;
     public static Dictionary<int, string> tableNames
@@ -175,7 +175,7 @@ public static class ServerAPI
         throw e;
     }
 
-    public static async UniTask LoadFromServer(CancellationToken cancellationToken = default)
+    public static async UniTask<SaveData> LoadFromServer(CancellationToken cancellationToken = default)
     {
         SaveData data = await UnityHttp.Send<SaveData>(RequestContext.Create(ServerCmd.USER_DATA_LOAD,
                 new Dictionary<string, List<int>>() { { "date_keys", new List<int>() } },
@@ -195,27 +195,21 @@ public static class ServerAPI
                 {
                     x.save_data = CLZF2.DecompressFromBase64(x.save_data);
                 }
-                catch (Exception e) { Debug.LogError(e); }
+                catch (Exception e)
+                { 
+                    Debug.LogError(e); 
+                }
             });
         }
 
-        foreach (var item in data.save_datas)
-        {
-            if (item.tableName == "BaseData")
-            {
-                UserDataManager.Instance.baseData = UserDataManager.Instance.baseData.ConvertToObject<BaseData>(item.save_data);
-            }
-            else if (item.tableName == "InventoryData")
-            {
-                UserDataManager.Instance.inventoryData = UserDataManager.Instance.baseData.ConvertToObject<InventoryData>(item.save_data);
-            }
-        }
-        Debug.Log(UserDataManager.Instance.baseData.level);
-        Debug.Log($"itemCount : {UserDataManager.Instance.inventoryData.itemList.Count}");
+        return data;
+       
     }
 
     public static async UniTask SaveToServer(CancellationToken cancellationToken = default)
     {
+        UserDataManager.Instance.dbVersion.dbVersion = GameTime.Get();
+        UserDataManager.Instance.SaveLocalData();
         SaveData data = new SaveData();
         data.ver = 999;
         data.save_datas = new List<RawData>();
@@ -227,7 +221,13 @@ public static class ServerAPI
             rawData.tableName = tables[i];
             rawData.date_key = date_key;
 
-            if (rawData.tableName == "BaseData")
+            if (rawData.tableName == "DBVersion")
+            {
+                DBVersion dbVersion = new DBVersion();
+                dbVersion.dbVersion = UserDataManager.Instance.dbVersion.dbVersion;
+                rawData.save_data = dbVersion.ToJson();
+            }
+            else if (rawData.tableName == "BaseData")
             {
                 rawData.save_data = UserDataManager.Instance.baseData.ToJson();
             }
@@ -239,8 +239,6 @@ public static class ServerAPI
             data.save_datas.Add(rawData);
         }
         await SaveToServer(data, useCompress, cancellationToken: cancellationToken);
-        Debug.Log("SaveToServer");
-
     }
     private static async UniTask SaveToServer(SaveData value, bool compress = false, CancellationToken cancellationToken = default)
     {
@@ -255,7 +253,10 @@ public static class ServerAPI
                 {
                     x.save_data = CLZF2.CompressToBase64(x.save_data);
                 }
-                catch (Exception e) { Debug.LogError(e); }
+                catch (Exception e) {
+                    Debug.LogError("SaveToServer");
+                    Debug.LogError(e); 
+                }
             });
         }
         await UnityHttp.Send(RequestContext.Create(ServerCmd.USER_DATA_SAVE, value,
