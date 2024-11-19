@@ -179,4 +179,9 @@ public class FirebaseTest2 : MonoBehaviour
         connectEmailButton.SetActive(!provideList.Contains(EPlatform.Email));
         disConnectEmailButton.SetActive(provideList.Contains(EPlatform.Email));
     }
+
+    public void OnClickPurchaseTest()
+    {
+        InAppPurchaseManager.Instance.BuyProduct();
+    }
 }
