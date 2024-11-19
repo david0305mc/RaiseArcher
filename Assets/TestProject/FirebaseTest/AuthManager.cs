@@ -147,12 +147,12 @@ public class AuthManager : Singleton<AuthManager>, IDisposable
                 return;
             }
             
-            DBVersion dbVersion = JsonUtility.FromJson<DBVersion>(versionRaw.save_data);
+            DBVersion serverVersion = JsonUtility.FromJson<DBVersion>(versionRaw.save_data);
             // 로컬 기록과 비교 싱크
 
-            if (UserDataManager.Instance.dbVersion.dbVersion < dbVersion.dbVersion)
+            if (UserDataManager.Instance.dbVersion.dbVersion < serverVersion.dbVersion)
             {
-                UserDataManager.Instance.dbVersion.dbVersion = dbVersion.dbVersion;
+                UserDataManager.Instance.dbVersion.dbVersion = serverVersion.dbVersion;
                 // apply serverData
                 foreach (var item in data.save_datas)
                 {
@@ -445,6 +445,7 @@ public class AuthManager : Singleton<AuthManager>, IDisposable
                             var signInResult = secondAuth.SignInAndRetrieveDataWithCredentialAsync(credential).AsUniTask();
                             var authResult = await signInResult;
                             await secondAuth.CurrentUser.DeleteAsync();
+                            Debug.LogError(e.ToString());
                             try
                             {
                                 //credential = Firebase.Auth.EmailAuthProvider.GetCredential(EMail, EmailPw);
