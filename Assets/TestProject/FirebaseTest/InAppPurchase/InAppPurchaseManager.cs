@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using System.Collections;
 using UnityEngine.Purchasing;
 
 public class InAppPurchaseManager : SingletonMono<InAppPurchaseManager>, IStoreListener
@@ -8,14 +9,12 @@ public class InAppPurchaseManager : SingletonMono<InAppPurchaseManager>, IStoreL
     private static IExtensionProvider storeExtensionProvider;
 
     public static string productID = "gem_01_60"; // Play Console에 등록된 SKU
-    
+
+
 
     void Start()
     {
-        if (storeController == null)
-        {
-            InitializePurchasing();
-        }
+        DontDestroyOnLoad(this);
     }
 
     public void InitializePurchasing()
@@ -73,10 +72,6 @@ public class InAppPurchaseManager : SingletonMono<InAppPurchaseManager>, IStoreL
                 Debug.Log("RestorePurchases: " + (result ? "Succeeded" : "Failed"));
             });
         }
-        else
-        {
-            Debug.LogError("RestorePurchases is not supported on this platform.");
-        }
     }
 
     public void OnInitialized(IStoreController controller, IExtensionProvider extensions)
@@ -84,6 +79,7 @@ public class InAppPurchaseManager : SingletonMono<InAppPurchaseManager>, IStoreL
         Debug.Log("OnInitialized: Successful.");
         storeController = controller;
         storeExtensionProvider = extensions;
+        RestorePurchases();
     }
 
     public void OnInitializeFailed(InitializationFailureReason error)
@@ -93,20 +89,49 @@ public class InAppPurchaseManager : SingletonMono<InAppPurchaseManager>, IStoreL
 
     public PurchaseProcessingResult ProcessPurchase(PurchaseEventArgs args)
     {
-        if (args.purchasedProduct.definition.id == productID)
-        {
-            Debug.Log($"Purchase successful: {args.purchasedProduct.definition.id}");
-            // 구매 성공 처리 (예: 아이템 지급)
-        }
-        else
-        {
-            Debug.LogError($"Purchase failed: {args.purchasedProduct.definition.id}");
-        }
-        return PurchaseProcessingResult.Complete;
+        //Retrieve the purchased product
+        var product = args.purchasedProduct;
+
+        StartCoroutine(BackEndValidation(product));
+
+        //We return Pending, informing IAP to keep the transaction open while we validate the purchase on our side.
+        return PurchaseProcessingResult.Pending;
     }
 
     public void OnPurchaseFailed(Product product, PurchaseFailureReason failureReason)
     {
         Debug.LogError($"Purchase failed: {product.definition.id}, {failureReason}");
     }
+    IEnumerator BackEndValidation(Product product)
+    {
+        //UpdateUI();
+
+        //Mock backend validation. Here you would call your own backend and wait for its response.
+        //If the app is closed during this time, ProcessPurchase will be called again for the same purchase once the app is opened again.
+        yield return MockServerSideValidation(product);
+
+        //UpdateUI();
+
+        Debug.Log($"Confirming purchase of {product.definition.id}");
+
+        //Once we have done the validation in our backend, we confirm the purchase.
+
+        storeController.ConfirmPendingPurchase(product);
+
+        //We can now add the purchased product to the players inventory
+        //if (product.definition.id == goldProductId)
+        //{
+        //    AddGold();
+        //}
+        UserDataManager.Instance.baseData.gold.Value += 1000;
+        ServerAPI.SaveToServer();
+    }
+
+    YieldInstruction MockServerSideValidation(Product product)
+    {
+        const int waitSeconds = 5;
+        Debug.Log($"Purchase Pending, Waiting for confirmation for {waitSeconds} seconds - Product: {product.definition.id}");
+        return new WaitForSeconds(waitSeconds);
+    }
+
 }

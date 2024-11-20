@@ -152,6 +152,7 @@ public class FirebaseTest2 : MonoBehaviour
         try
         {
             await AuthManager.Instance.LoginGameServer(AuthManager.Instance.GetProviedType(), token, cancelltaionTokenSource);
+            InAppPurchaseManager.Instance.InitializePurchasing();
             UpdatePlatformUI();
         }
         catch
