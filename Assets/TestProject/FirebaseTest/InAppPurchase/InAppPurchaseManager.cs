@@ -2,6 +2,8 @@ using System;
 using UnityEngine;
 using System.Collections;
 using UnityEngine.Purchasing;
+using Cysharp.Threading.Tasks;
+using System.Threading;
 
 public class InAppPurchaseManager : SingletonMono<InAppPurchaseManager>, IStoreListener
 {
@@ -11,12 +13,16 @@ public class InAppPurchaseManager : SingletonMono<InAppPurchaseManager>, IStoreL
     public static string productID = "gem_01_60"; // Play Console에 등록된 SKU
 
 
-
+    private CancellationTokenSource cts;
     void Start()
     {
         DontDestroyOnLoad(this);
     }
 
+    private void OnDestroy()
+    {
+        cts.Clear();
+    }
     public void InitializePurchasing()
     {
         if (IsInitialized())
@@ -24,6 +30,7 @@ public class InAppPurchaseManager : SingletonMono<InAppPurchaseManager>, IStoreL
             return;
         }
 
+        cts = new CancellationTokenSource();
         var builder = ConfigurationBuilder.Instance(StandardPurchasingModule.Instance());
         builder.AddProduct(productID, ProductType.Consumable); // Consumable, NonConsumable, Subscription 중 선택
         UnityPurchasing.Initialize(this, builder);
@@ -92,7 +99,8 @@ public class InAppPurchaseManager : SingletonMono<InAppPurchaseManager>, IStoreL
         //Retrieve the purchased product
         var product = args.purchasedProduct;
 
-        StartCoroutine(BackEndValidation(product));
+
+        BackEndValidation(product).Forget();
 
         //We return Pending, informing IAP to keep the transaction open while we validate the purchase on our side.
         return PurchaseProcessingResult.Pending;
@@ -102,13 +110,18 @@ public class InAppPurchaseManager : SingletonMono<InAppPurchaseManager>, IStoreL
     {
         Debug.LogError($"Purchase failed: {product.definition.id}, {failureReason}");
     }
-    IEnumerator BackEndValidation(Product product)
+
+    async UniTask BackEndValidation(Product product)
     {
         //UpdateUI();
 
         //Mock backend validation. Here you would call your own backend and wait for its response.
         //If the app is closed during this time, ProcessPurchase will be called again for the same purchase once the app is opened again.
-        yield return MockServerSideValidation(product);
+        const int waitSeconds = 5;
+        Debug.Log($"Purchase Pending, Waiting for confirmation for {waitSeconds} seconds - Product: {product.definition.id}");
+
+        await UniTask.Delay(TimeSpan.FromSeconds(waitSeconds), cancellationToken: cts.Token);
+
 
         //UpdateUI();
 
@@ -125,13 +138,6 @@ public class InAppPurchaseManager : SingletonMono<InAppPurchaseManager>, IStoreL
         //}
         UserDataManager.Instance.baseData.gold.Value += 1000;
         ServerAPI.SaveToServer();
-    }
-
-    YieldInstruction MockServerSideValidation(Product product)
-    {
-        const int waitSeconds = 5;
-        Debug.Log($"Purchase Pending, Waiting for confirmation for {waitSeconds} seconds - Product: {product.definition.id}");
-        return new WaitForSeconds(waitSeconds);
     }
 
 }
