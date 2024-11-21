@@ -14,8 +14,8 @@ using Response = Protocols.Response;
 
 public enum RequestType
 {
-    Get,
-    Post
+    GET,
+    POST
 }
 
 public class RequestContext
@@ -40,7 +40,7 @@ public class RequestContext
 
 
     public static RequestContext Create(int method,
-        RequestType requestType = RequestType.Post,
+        RequestType requestType = RequestType.POST,
         bool defaultLockHandling = true,
         bool defaultRetryHandling = true,
         bool defaultExceptionHandling = true)
@@ -59,7 +59,7 @@ public class RequestContext
 
     public static RequestContext Create<T>(int method,
         T data,
-        RequestType requestType = RequestType.Post,
+        RequestType requestType = RequestType.POST,
         bool defaultLockHandling = true,
         bool defaultRetryHandling = true,
         bool defaultExceptionHandling = true)
@@ -246,7 +246,7 @@ public static class UnityHttp
                 {
                     Debug.LogErrorFormat("[UnityHttp] {0}:{1}", id, e);
 
-                    if (data.reqType == RequestType.Post && e.Result != UnityWebRequest.Result.ConnectionError)
+                    if (data.reqType == RequestType.POST && e.Result != UnityWebRequest.Result.ConnectionError)
                     {
                         var exception = new UnityHttpNetworkException(req);
                         if (data.defaultExceptionHandling)
@@ -395,8 +395,7 @@ public static class UnityHttp
         //    retryLastTime = GameTime.Get();
         //}
     }
-    public static UniTask<T> Send<T>(RequestContext data,
-        CancellationToken cancellationToken = default)
+    public static UniTask<T> Send<T>(RequestContext data, CancellationToken cancellationToken = default)
     {
         return Send(data, cancellationToken).ContinueWith(x => x.GetResult<T>());
     }

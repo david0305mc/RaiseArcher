@@ -25,7 +25,7 @@ public class SaveData
 public static class ServerAPI
 {
     public static ulong Uno { get; set; }
-    private static bool useCompress = false;
+    private static bool useCompress = true;
     public static Dictionary<string, int> tableIdx = new Dictionary<string, int>()
     {
         {"DBVersion", 1},
