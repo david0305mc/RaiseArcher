@@ -185,4 +185,11 @@ public class FirebaseTest2 : MonoBehaviour
     {
         InAppPurchaseManager.Instance.BuyProduct();
     }
+
+    public void OnClickNeworkTest()
+    {
+        NetworkTest.NetworkCall.Instance.OnClickPostRequest();
+
+
+    }
 }
