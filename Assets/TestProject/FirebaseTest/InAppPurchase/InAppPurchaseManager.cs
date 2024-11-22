@@ -4,6 +4,8 @@ using System.Collections;
 using UnityEngine.Purchasing;
 using Cysharp.Threading.Tasks;
 using System.Threading;
+using static NetworkAPI;
+
 
 public class InAppPurchaseManager : SingletonMono<InAppPurchaseManager>, IStoreListener
 {
@@ -11,8 +13,11 @@ public class InAppPurchaseManager : SingletonMono<InAppPurchaseManager>, IStoreL
     private static IExtensionProvider storeExtensionProvider;
 
     public static string productID = "gem_01_60"; // Play Console에 등록된 SKU
+    public static int shopID = 2003002;
 
 
+    private BillingOrderRes billingOrderRes;
+    private UniTaskCompletionSource<BillingReceiptRes> purchaseUcs;
     private CancellationTokenSource cts;
     void Start()
     {
@@ -41,7 +46,7 @@ public class InAppPurchaseManager : SingletonMono<InAppPurchaseManager>, IStoreL
         return storeController != null && storeExtensionProvider != null;
     }
 
-    public void BuyProduct()
+    public async UniTask BuyProduct()
     {
         if (!IsInitialized())
         {
@@ -54,7 +59,11 @@ public class InAppPurchaseManager : SingletonMono<InAppPurchaseManager>, IStoreL
         if (product != null && product.availableToPurchase)
         {
             Debug.Log($"Buying product: {product.definition.id}");
+
+            billingOrderRes = await BillingMakeOrder(EStoreType.Android, shopID, productID, product.metadata.isoCurrencyCode, default);
+            purchaseUcs = new UniTaskCompletionSource<BillingReceiptRes>();
             storeController.InitiatePurchase(product);
+            var res = await purchaseUcs.Task;
         }
         else
         {
@@ -98,8 +107,6 @@ public class InAppPurchaseManager : SingletonMono<InAppPurchaseManager>, IStoreL
     {
         //Retrieve the purchased product
         var product = args.purchasedProduct;
-
-
         BackEndValidation(product).Forget();
 
         //We return Pending, informing IAP to keep the transaction open while we validate the purchase on our side.
@@ -122,6 +129,9 @@ public class InAppPurchaseManager : SingletonMono<InAppPurchaseManager>, IStoreL
 
         await UniTask.Delay(TimeSpan.FromSeconds(waitSeconds), cancellationToken: cts.Token);
 
+        //EStoreType storeType, string bid, string product_id, int shop_idx, CancellationTokenSource cts
+
+        BillingReceiptRes res = await BillingVerifyReceipt(EStoreType.Android, billingOrderRes.bid, billingOrderRes.product_id, billingOrderRes.shop_idx, product, default);
 
         //UpdateUI();
 
@@ -136,8 +146,100 @@ public class InAppPurchaseManager : SingletonMono<InAppPurchaseManager>, IStoreL
         //{
         //    AddGold();
         //}
+        purchaseUcs.TrySetResult(res);
         UserDataManager.Instance.baseData.gold.Value += 1000;
         NetworkAPI.SaveToServer();
     }
 
+}
+
+public class UnityProduct
+{
+    private Product _product;
+    private Receipt _receipt;
+
+    public Product product { get { return _product; } }
+    public string productID { get { return _product.definition.id; } }
+    public string transactionID { get { return _product.transactionID; } }
+
+    public Receipt receipt
+    {
+        get
+        {
+            if (_product == null || !_product.hasReceipt)
+                return null;
+
+            if (_receipt == null)
+                _receipt = JsonUtility.FromJson<Receipt>(_product.receipt);
+
+            return _receipt;
+        }
+    }
+
+
+    public UnityProduct(Product product) => _product = product;
+    public static UnityProduct Get(Product product) => new UnityProduct(product);
+}
+
+[Serializable]
+public class Receipt
+{
+    public string Store;
+    public string TransactionID;
+    public string Payload;
+
+    private PayloadInfo _payLoadInfo;
+    public PayloadInfo PayLoadInfo
+    {
+        get
+        {
+            if (Store != GooglePlay.Name)
+                return null;
+
+            if (string.IsNullOrEmpty(Payload))
+                return null;
+
+            if (_payLoadInfo == null)
+                _payLoadInfo = JsonUtility.FromJson<PayloadInfo>(Payload);
+
+            return _payLoadInfo;
+        }
+    }
+
+    public override string ToString() => JsonUtility.ToJson(this);
+}
+
+[Serializable]
+public class PayloadInfo
+{
+    public string json;
+    public string signature;
+
+    private PayloadData _data;
+    public PayloadData data
+    {
+        get
+        {
+            if (string.IsNullOrEmpty(json))
+                return null;
+
+            if (_data == null)
+                _data = JsonUtility.FromJson<PayloadData>(json);
+
+            return _data;
+        }
+    }
+}
+
+[Serializable]
+public class PayloadData
+{
+    public string orderId;
+    public string packageName;
+    public string productId;
+    public long purchaseTime;
+    public int purchaseState;
+    public string purchaseToken;
+    public string developerPayload;
+    public override string ToString() => JsonUtility.ToJson(this);
 }

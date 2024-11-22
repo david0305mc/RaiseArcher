@@ -53,6 +53,12 @@ public enum EPlatform
     Deleted,
 }
 
+public enum EStoreType
+{
+    None = 0,
+    Android = 1,
+    iOS = 2,
+}
 public enum EBuildType
 {
     Dev,

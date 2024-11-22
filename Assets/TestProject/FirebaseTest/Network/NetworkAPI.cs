@@ -8,8 +8,7 @@ using System.Threading;
 using NetworkTest;
 using System.Linq;
 using System;
-
-
+using UnityEngine.Purchasing;
 
 public class NetworkAPI
 {
@@ -136,6 +135,79 @@ public class NetworkAPI
         Debug.Log("Session : " + res.session);
         Debug.Log("uNO : " + uno);
         return res;
+    }
+
+    public class BillingOrderReq
+    {
+        public int shop_platform;
+        public int shop_idx;
+        public string product_id;
+        public string currency;
+    }
+    public class BillingOrderRes
+    {
+        public string bid;
+        public int shop_idx;
+        public string product_id;
+    }
+
+    public static async UniTask<BillingOrderRes> BillingMakeOrder(EStoreType shop_platform, int shop_idx, string product_id, string currency, CancellationTokenSource cts)
+    {
+        var data = new BillingOrderReq();
+        data.shop_platform = (int)shop_platform;
+        data.shop_idx = shop_idx;
+        data.product_id = product_id;
+        data.currency = currency;
+
+        var reqContext = NetworkTest.RequestContext.Create(ServerSetting.gameUrl, ServerCmd.BILLING_INIT, data);
+        return await NetworkManager.Instance.SendToServer<BillingOrderRes>(reqContext, cts);
+    }
+
+    public class BillingReceiptReq
+    {
+        public string bid;
+        public int shop_platform;
+        public int shop_idx;
+        public string product_id;
+        public string transaction_id;
+        public string purchase_token;
+        public string receipt;
+    }
+    public class BillingReceiptRes 
+    {
+        public string bid;
+        public int shop_platform;
+        public string product_id;
+    }
+
+    public static async UniTask<BillingReceiptRes> BillingVerifyReceipt(EStoreType storeType, string bid, string product_id, int shop_idx, Product product, CancellationTokenSource cts)
+    {
+        var data = new BillingReceiptReq();
+        data.bid = bid;
+        data.shop_platform = (int)storeType;
+        data.shop_idx = shop_idx;
+        data.product_id = product_id;
+
+        if (!Application.isEditor)
+        {
+            var unityProduct = UnityProduct.Get(product);
+            switch (storeType)
+            {
+                case EStoreType.Android:
+                    data.transaction_id = unityProduct.transactionID;
+                    data.purchase_token = unityProduct.receipt.PayLoadInfo.data.purchaseToken;
+                    data.receipt = unityProduct.receipt.ToString();
+                    break;
+                case EStoreType.iOS:
+                    data.transaction_id = unityProduct.transactionID;
+                    data.purchase_token = "";
+                    data.receipt = unityProduct.receipt.ToString();
+                    break;
+            }
+        }
+
+        var reqContext = NetworkTest.RequestContext.Create(ServerSetting.gameUrl, ServerCmd.BILLING_RECEIPT, data);
+        return await NetworkManager.Instance.SendToServer<BillingReceiptRes>(reqContext, cts);
     }
 
     public class SaveDataRes
