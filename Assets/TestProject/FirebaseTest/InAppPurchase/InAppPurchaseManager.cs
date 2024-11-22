@@ -21,7 +21,7 @@ public class InAppPurchaseManager : SingletonMono<InAppPurchaseManager>, IStoreL
 
     private void OnDestroy()
     {
-        cts.Clear();
+        cts?.Clear();
     }
     public void InitializePurchasing()
     {

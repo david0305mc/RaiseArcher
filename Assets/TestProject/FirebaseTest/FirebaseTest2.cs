@@ -122,7 +122,8 @@ public class FirebaseTest2 : MonoBehaviour
     }
     private async UniTaskVoid StartGame()
     {
-        var serverStatus = await ServerAPI.GetServerStatus(cancellationToken: cancelltaionTokenSource.Token);
+        var serverStatus = await NetworkAPI.GetServerStatus(cancelltaionTokenSource);
+        //var serverStatus = await ServerAPI.GetServerStatus(cancellationToken: cancelltaionTokenSource.Token);
         loginButton.gameObject.SetActive(false);
 
         if (!AuthManager.Instance.IsFirebaseSigned())

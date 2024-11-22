@@ -28,6 +28,7 @@ namespace NetworkTest
     public class RequestContext
     {
         public string id;
+        public string url;
         public int method;
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public object @params;
@@ -39,27 +40,20 @@ namespace NetworkTest
         /// <summary>재전송 디폴트 처리 여부</summary>
         [JsonIgnore] public bool defaultRetryHandling;
 
-
-        public static RequestContext Create(int method,
-            RequestType requestType = RequestType.POST,
-            bool defaultRetryHandling = true)
-        {
-            RequestContext ret = new RequestContext();
-            ret.id = Utility.RandomId8Bytes();
-            ret.method = method;
-            ret.@params = null;
-            ret.reqType = requestType;
-            ret.sess = ServerSetting.sess;
-            ret.defaultRetryHandling = defaultRetryHandling;
-            return ret;
-        }
-
-        public static RequestContext Create<T>(int method,
+        public static RequestContext Create<T>(
+            string url,
+            int method,
             T data,
             RequestType requestType = RequestType.POST,
             bool defaultRetryHandling = true)
         {
-            var ret = Create(method, requestType, defaultRetryHandling);
+            RequestContext ret = new RequestContext();
+            ret.url = url;
+            ret.id = Utility.RandomId8Bytes();
+            ret.method = method;
+            ret.reqType = requestType;
+            ret.sess = ServerSetting.sess;
+            ret.defaultRetryHandling = defaultRetryHandling;
             ret.@params = data;
             return ret;
         }
@@ -91,35 +85,45 @@ public class NetworkManager : SingletonMono<NetworkManager>
     private static Dictionary<string, string> jsonHeaders = new Dictionary<string, string>() { { "Content-Type", "application/json" } };
     public void StartGetRequest()
     {
-        GetRequest("https://naver.com").Forget();
+        //GetRequest("https://naver.com").Forget();
     }
 
-    private async UniTask GetRequest(string url)
+    public async UniTask<T> GetRequest<T>(string url, CancellationTokenSource cts)
     {
-        using (UnityWebRequest webRequest = UnityWebRequest.Get(url))
+        using (UnityWebRequest webRequest = UnityWebRequest.Get(Utility.URLAntiCacheRandomizer(url)))
         {
-            // 요청 보내기 및 응답 대기
-            await webRequest.SendWebRequest();
+            cts.CancelAfterSlim(System.TimeSpan.FromSeconds(5));
 
-            // 결과 처리
-            if (webRequest.result == UnityWebRequest.Result.ConnectionError ||
-                webRequest.result == UnityWebRequest.Result.ProtocolError)
-            {
-                Debug.LogError($"Error: {webRequest.error}");
+            try
+            { 
+                await webRequest.SendWebRequest();
+                //return JsonConvert.DeserializeObject<T>(Encoding.UTF8.GetString(await Get(url, headers, progress, defaultLockHandling, defaultRetryHandling, defaultExceptionHandling, cancellationToken)));
+                var utf8String = Encoding.UTF8.GetString(webRequest.downloadHandler.data);
+                var resContext = JsonConvert.DeserializeObject<T>(utf8String);
+                return resContext;
             }
-            else
+            catch (OperationCanceledException ex)
             {
-                Debug.Log($"Response: {webRequest.downloadHandler.text}");
+                if (ex.CancellationToken == cts.Token)
+                {
+                    Debug.LogError("Timeout");
+                    await UniTask.Delay(TimeSpan.FromSeconds(1f), cancellationToken: cts.Token);
+                    // To Do : Retry 
+
+                    return await GetRequest<T>(url, cts);
+                }
             }
+            catch (Exception e)
+            {
+                await UniTask.Delay(TimeSpan.FromSeconds(1f), cancellationToken: cts.Token);
+                // To Do : Retry 
+                return await GetRequest<T>(url, cts);
+            }
+            return default;
         }
     }
 
-    public void StartPostRequest()
-    {
-        //SendToServer("www.naver.com", SENDTYPE.POST, string.Empty).Forget();
-    }
-
-    public async UniTask<T> SendToServer<T>(NetworkTest.RequestContext data, CancellationToken cancellationToken = default) 
+    public async UniTask<T> SendToServer<T>(NetworkTest.RequestContext data, CancellationTokenSource cts) 
     {
         try
         {
@@ -129,7 +133,7 @@ public class NetworkManager : SingletonMono<NetworkManager>
                 Debug.LogError("Unable Nework");
                 return default;
             }
-            var cts = new CancellationTokenSource();
+
             cts.CancelAfterSlim(System.TimeSpan.FromSeconds(5));
 
             string id = data.id;
@@ -137,8 +141,7 @@ public class NetworkManager : SingletonMono<NetworkManager>
             Encryptor encryptor = ServerSetting.isEncryptServer ? ServerSetting.encryptor : null;
             byte[] rawData = encryptor != null ? Encoding.UTF8.GetBytes(await encryptor.EncryptToStringAsync(jsonData)) : Encoding.UTF8.GetBytes(jsonData);
 
-
-            using (UnityWebRequest req = new UnityWebRequest(ServerSetting.gameUrl, UnityWebRequest.kHttpVerbPOST))
+            using (UnityWebRequest req = new UnityWebRequest(ServerSetting.gameUrl, data.reqType.ToString()))
             {
                 foreach (var header in jsonHeaders)
                     req.SetRequestHeader(header.Key, header.Value);
@@ -148,7 +151,7 @@ public class NetworkManager : SingletonMono<NetworkManager>
 
                 try
                 {
-                    var res = await req.SendWebRequest();
+                    await req.SendWebRequest();
                     var text = encryptor != null ? await encryptor.DecryptToStringAsync(req.downloadHandler.text) : req.downloadHandler.text;
                     var resContext = JsonConvert.DeserializeObject<NetworkTest.ResponseContext>(text);
 
@@ -167,16 +170,19 @@ public class NetworkManager : SingletonMono<NetworkManager>
                 {
                     if (ex.CancellationToken == cts.Token)
                     {
-                        Debug.Log("Timeout");
-                        await UniTask.Delay(TimeSpan.FromSeconds(1f));
+                        Debug.LogError("Timeout");
+                        await UniTask.Delay(TimeSpan.FromSeconds(1f), cancellationToken: cts.Token);
+                        // To Do : Retry Popup
 
-                        return await SendToServer<T>(data, cancellationToken);
+                        return await SendToServer<T>(data, cts);
                     }
 
                 }
                 catch (Exception e)
                 {
-                    return default;
+                    await UniTask.Delay(TimeSpan.FromSeconds(1f), cancellationToken: cts.Token);
+                    // To Do : Retry Popup
+                    return await SendToServer<T>(data, cts);
                 }
             }
             return default;

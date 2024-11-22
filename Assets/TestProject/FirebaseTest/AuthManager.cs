@@ -122,10 +122,10 @@ public class AuthManager : Singleton<AuthManager>, IDisposable
     public async UniTask LoginGameServer(EPlatform _platform, string _firebaseToken, CancellationTokenSource _cts)
     {
         var repSignIn = await NetworkAPI.SignIn(_platform, _firebaseToken, _cts);
-        Debug.Log($"test4");
-        var repLogin = await ServerAPI.Login(repSignIn.uno, repSignIn.token, _cts.Token);
+        Debug.Log($"test444");
+        var repLogin = await NetworkAPI.Login(repSignIn.uno, repSignIn.token, _cts);
 
-        Debug.Log($"test5");
+        Debug.Log($"test555");
         UserDataManager.Instance.LoadLocalData(repSignIn.uno);
     }
     public async UniTask LoginGameServerOld(EPlatform _platform, string _firebaseToken, CancellationTokenSource _cts)
