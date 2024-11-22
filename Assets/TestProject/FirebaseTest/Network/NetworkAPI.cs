@@ -7,62 +7,39 @@ using System.Threading;
 
 using NetworkTest;
 using System.Linq;
+using System;
 
-public class UserInfo
+
+
+public class NetworkAPI
 {
-    public string token;
-    public string username;
-    public string name;
+    public static Dictionary<string, int> tableIdx = new Dictionary<string, int>()
+    {
+        {"DBVersion", 1},
+        {"BaseData", 2},
+        {"InventoryData", 3},
+    };
+    private static Dictionary<int, string> _tableNames;
+    public static Dictionary<int, string> tableNames
+    {
+        get
+        {
+            if (_tableNames == null)
+                _tableNames = tableIdx.ToDictionary(x => x.Value, x => x.Key);
 
-}
+            return _tableNames;
+        }
+    }
+    public static string ConvertToTableName(int idx)
+    {
+        return tableNames.GetValueOrDefault(idx);
+    }
 
-public class RequestSignInData
-{
-    public string username;
-    public string password;
-}
-public class SignInReq
-{
-    public int platform;
-    /// <summary>플랫폼 아이디 (firebase)</summary>
-    public string platform_id;
+    public static int ConvertToDateKey(string tableName)
+    {
+        return tableIdx.GetValueOrDefault(tableName);
+    }
 
-    [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-    public string lang;
-    [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-    public string push_id;
-    [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
-    public int os;
-    public string gpresto_sdata;
-    public int gpresto_engine_state;
-}
-
-public class SignInRes
-{
-    public ulong uno;
-    public string token;
-    public string platform_id;
-    /// <summary>탈퇴 유예시간 -> 0이 아닐 경우 탈퇴중 팝업 표시, 게임 로그인 진행하지 않음</summary>
-    public double leave_time;
-    public string country;
-    /// <summary>최초 계정 생성여부 (0=재로그인, 1=최초 계정 생성)</summary>
-    public int first_login;
-}
-
-public class LoginReq
-{
-    public ulong uno;
-    public string token;
-}
-
-public class LoginRes
-{
-    public string session;
-}
-
-
-public class NetworkAPI 
-{
     public static async UniTask<EServerStatus> GetServerStatus(CancellationTokenSource _cts)
     {
         VersionData[] datas = await NetworkManager.Instance.GetRequest<VersionData[]>(string.Format("{0}/version_list.json", ServerSetting.commonUrl), _cts);
@@ -86,6 +63,34 @@ public class NetworkAPI
         return ServerSetting.status;
     }
 
+    public class SignInReq
+    {
+        public int platform;
+        /// <summary>플랫폼 아이디 (firebase)</summary>
+        public string platform_id;
+
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        public string lang;
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        public string push_id;
+        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
+        public int os;
+        public string gpresto_sdata;
+        public int gpresto_engine_state;
+    }
+
+    public class SignInRes
+    {
+        public ulong uno;
+        public string token;
+        public string platform_id;
+        /// <summary>탈퇴 유예시간 -> 0이 아닐 경우 탈퇴중 팝업 표시, 게임 로그인 진행하지 않음</summary>
+        public double leave_time;
+        public string country;
+        /// <summary>최초 계정 생성여부 (0=재로그인, 1=최초 계정 생성)</summary>
+        public int first_login;
+    }
+
     public static async UniTask<SignInRes> SignIn(EPlatform _platform, string _firebaseToken, CancellationTokenSource _cts)
     {
         //string url = Utility.URLAntiCacheRandomizer(ServerSetting.gameUrl);
@@ -102,10 +107,20 @@ public class NetworkAPI
         data.os = 1;
 #endif
         var reqContext = NetworkTest.RequestContext.Create(ServerSetting.gameUrl, ServerCmd.AUTH_USER_LOGIN, data);
-        
-        SignInRes res = await NetworkManager.Instance.SendToServer<SignInRes>(reqContext, _cts);
+        var res = await NetworkManager.Instance.SendToServer<SignInRes>(reqContext, _cts);
         Debug.Log(res);
         return res;
+    }
+
+    public class LoginReq
+    {
+        public ulong uno;
+        public string token;
+    }
+
+    public class LoginRes
+    {
+        public string session;
     }
 
     public static async UniTask<LoginRes> Login(ulong uno, string token, CancellationTokenSource _cts)
@@ -121,5 +136,88 @@ public class NetworkAPI
         Debug.Log("Session : " + res.session);
         Debug.Log("uNO : " + uno);
         return res;
+    }
+
+    public class SaveDataRes
+    {
+        public class RawData
+        {
+            public string tableName;
+            public int date_key;
+            public string save_data;
+        }
+
+        public ulong ver;
+        public List<RawData> save_datas;
+    }
+
+    public static async UniTask<SaveDataRes> LoadFromServer(CancellationTokenSource _cts)
+    {
+        var data = new Dictionary<string, List<int>>() { { "date_keys", new List<int>() } };
+        var reqContext = NetworkTest.RequestContext.Create(ServerSetting.gameUrl, ServerCmd.USER_DATA_LOAD, data);
+        SaveDataRes res = await NetworkManager.Instance.SendToServer<SaveDataRes>(reqContext, _cts);
+
+        res.save_datas.ForEach(x => x.tableName = ConvertToTableName(x.date_key));
+        //if (useCompress)
+        if (true)
+        {
+            res.save_datas.ForEach(x =>
+            {
+                if (string.IsNullOrEmpty(x.save_data))
+                    return;
+
+                try
+                {
+                    x.save_data = CLZF2.DecompressFromBase64(x.save_data);
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError(e);
+                }
+            });
+        }
+        return res;
+    }
+
+    public static async UniTask SaveToServer(CancellationTokenSource _cts = default)
+    {
+        UserDataManager.Instance.dbVersion.dbVersion = GameTime.Get();
+        UserDataManager.Instance.SaveLocalData();
+        SaveDataRes data = new SaveDataRes();
+        data.ver = 999;
+        data.save_datas = new List<SaveDataRes.RawData>();
+        var tables = tableNames.Values.ToList();
+        for (int i = 0; i < tableNames.Count; i++)
+        {
+            var date_key = ConvertToDateKey(tables[i]);
+            var rawData = new SaveDataRes.RawData();
+            rawData.tableName = tables[i];
+            rawData.date_key = date_key;
+
+            if (rawData.tableName == "DBVersion")
+            {
+                DBVersion dbVersion = new DBVersion();
+                dbVersion.dbVersion = UserDataManager.Instance.dbVersion.dbVersion;
+                rawData.save_data = dbVersion.ToJson();
+            }
+            else if (rawData.tableName == "BaseData")
+            {
+                rawData.save_data = UserDataManager.Instance.baseData.ToJson();
+            }
+            else if (rawData.tableName == "InventoryData")
+            {
+                rawData.save_data = UserDataManager.Instance.inventoryData.ToJson();
+            }
+
+            if (!string.IsNullOrEmpty(rawData.save_data))
+            {
+                rawData.save_data = CLZF2.CompressToBase64(rawData.save_data);
+            }
+            
+            data.save_datas.Add(rawData);
+        }
+        
+        var reqContext = NetworkTest.RequestContext.Create(ServerSetting.gameUrl, ServerCmd.USER_DATA_SAVE, data);
+        await NetworkManager.Instance.SendToServer(reqContext, _cts);
     }
 }

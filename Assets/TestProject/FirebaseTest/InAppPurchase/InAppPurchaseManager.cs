@@ -137,7 +137,7 @@ public class InAppPurchaseManager : SingletonMono<InAppPurchaseManager>, IStoreL
         //    AddGold();
         //}
         UserDataManager.Instance.baseData.gold.Value += 1000;
-        ServerAPI.SaveToServer();
+        NetworkAPI.SaveToServer();
     }
 
 }

@@ -119,7 +119,7 @@ public class AuthManager : Singleton<AuthManager>, IDisposable
         return await Auth.CurrentUser.TokenAsync(true).AsUniTask().AttachExternalCancellation(_cts.Token);
     }
 
-    public async UniTask LoginGameServer(EPlatform _platform, string _firebaseToken, CancellationTokenSource _cts)
+    public async UniTask LoginGameServerTest(EPlatform _platform, string _firebaseToken, CancellationTokenSource _cts)
     {
         var repSignIn = await NetworkAPI.SignIn(_platform, _firebaseToken, _cts);
         Debug.Log($"test444");
@@ -128,19 +128,23 @@ public class AuthManager : Singleton<AuthManager>, IDisposable
         Debug.Log($"test555");
         UserDataManager.Instance.LoadLocalData(repSignIn.uno);
     }
-    public async UniTask LoginGameServerOld(EPlatform _platform, string _firebaseToken, CancellationTokenSource _cts)
+    public async UniTask LoginGameServer(EPlatform _platform, string _firebaseToken, CancellationTokenSource _cts)
     {
-        var repSignIn = await ServerAPI.SignIn(_platform, _firebaseToken, "KO", string.Empty, _cts.Token);
-        Debug.Log($"test4");
-        var repLogin = await ServerAPI.Login(repSignIn.uno, repSignIn.token, _cts.Token);
-        
+        //var repSignIn = await ServerAPI.SignIn(_platform, _firebaseToken, "KO", string.Empty, _cts.Token);
+        //Debug.Log($"test4");
+        //var repLogin = await ServerAPI.Login(repSignIn.uno, repSignIn.token, _cts.Token);
+
+        var repSignIn = await NetworkAPI.SignIn(_platform, _firebaseToken, _cts);
+        var repLogin = await NetworkAPI.Login(repSignIn.uno, repSignIn.token, _cts);
+
         Debug.Log($"test5");
         UserDataManager.Instance.LoadLocalData(repSignIn.uno);
         if (repSignIn.first_login == 0)
         {
             // To Do : 시간 비교 후 동기화
 
-            SaveData data = await ServerAPI.LoadFromServer(_cts.Token);
+            //SaveData data = await ServerAPI.LoadFromServer(_cts.Token);
+            var data = await NetworkAPI.LoadFromServer(_cts);
             if (data == null)
             {
                 Debug.Log("data == null");

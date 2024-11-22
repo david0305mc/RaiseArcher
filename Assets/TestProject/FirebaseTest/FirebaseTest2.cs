@@ -42,7 +42,7 @@ public class FirebaseTest2 : MonoBehaviour
             UserDataManager.Instance.baseData.AddGold();
             //UserDataManager.Instance.baseData.AddDicTest(1);
             //UserDataManager.Instance.inventoryData.AddItem();
-            ServerAPI.SaveToServer();
+            NetworkAPI.SaveToServer();
 
         });
         logOutButton.onClick.AddListener(() =>

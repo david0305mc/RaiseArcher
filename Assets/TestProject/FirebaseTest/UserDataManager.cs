@@ -21,7 +21,6 @@ public class UserDataManager : Singleton<UserDataManager>
             Utill.SaveFile(LocalFilePath, saveData);
         }
 
-
         {
             var saveData = JsonUtility.ToJson(dbVersion);
             //saveData = Utill.EncryptXOR(saveData);

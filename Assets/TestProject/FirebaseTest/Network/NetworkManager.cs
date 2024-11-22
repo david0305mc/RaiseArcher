@@ -95,8 +95,8 @@ public class NetworkManager : SingletonMono<NetworkManager>
             cts.CancelAfterSlim(System.TimeSpan.FromSeconds(5));
 
             try
-            { 
-                await webRequest.SendWebRequest();
+            {
+                await webRequest.SendWebRequest().WithCancellation(cts.Token);
                 //return JsonConvert.DeserializeObject<T>(Encoding.UTF8.GetString(await Get(url, headers, progress, defaultLockHandling, defaultRetryHandling, defaultExceptionHandling, cancellationToken)));
                 var utf8String = Encoding.UTF8.GetString(webRequest.downloadHandler.data);
                 var resContext = JsonConvert.DeserializeObject<T>(utf8String);
@@ -123,7 +123,12 @@ public class NetworkManager : SingletonMono<NetworkManager>
         }
     }
 
-    public async UniTask<T> SendToServer<T>(NetworkTest.RequestContext data, CancellationTokenSource cts) 
+    public async UniTask<T> SendToServer<T>(NetworkTest.RequestContext data, CancellationTokenSource cts)
+    {
+        var resContext = await SendToServer(data, cts);
+        return resContext.GetResult<T>();
+    }
+    public async UniTask<NetworkTest.ResponseContext> SendToServer(NetworkTest.RequestContext data, CancellationTokenSource cts) 
     {
         try
         {
@@ -133,7 +138,8 @@ public class NetworkManager : SingletonMono<NetworkManager>
                 Debug.LogError("Unable Nework");
                 return default;
             }
-
+            if (cts == default)
+                cts = new CancellationTokenSource();
             cts.CancelAfterSlim(System.TimeSpan.FromSeconds(5));
 
             string id = data.id;
@@ -151,7 +157,7 @@ public class NetworkManager : SingletonMono<NetworkManager>
 
                 try
                 {
-                    await req.SendWebRequest();
+                    await req.SendWebRequest().WithCancellation(cts.Token);
                     var text = encryptor != null ? await encryptor.DecryptToStringAsync(req.downloadHandler.text) : req.downloadHandler.text;
                     var resContext = JsonConvert.DeserializeObject<NetworkTest.ResponseContext>(text);
 
@@ -164,7 +170,7 @@ public class NetworkManager : SingletonMono<NetworkManager>
                         Debug.LogError($"resContext.alert {resContext.alert.message}");
                     }
 
-                    return resContext.GetResult<T>();
+                    return resContext;
                 }
                 catch (OperationCanceledException ex)
                 {
@@ -174,7 +180,7 @@ public class NetworkManager : SingletonMono<NetworkManager>
                         await UniTask.Delay(TimeSpan.FromSeconds(1f), cancellationToken: cts.Token);
                         // To Do : Retry Popup
 
-                        return await SendToServer<T>(data, cts);
+                        return await SendToServer(data, cts);
                     }
 
                 }
@@ -182,7 +188,7 @@ public class NetworkManager : SingletonMono<NetworkManager>
                 {
                     await UniTask.Delay(TimeSpan.FromSeconds(1f), cancellationToken: cts.Token);
                     // To Do : Retry Popup
-                    return await SendToServer<T>(data, cts);
+                    return await SendToServer(data, cts);
                 }
             }
             return default;
