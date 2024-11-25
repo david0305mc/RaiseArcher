@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-
+using Cysharp.Threading.Tasks;
 
 
 public class AdManager : Singleton<AdManager>
@@ -18,8 +18,10 @@ public class AdManager : Singleton<AdManager>
   private string _adUnitId = "unused";
 #endif
 
-    private RewardedAd _rewardedAd;
+    private Queue<RewardedAd> adQueue = new Queue<RewardedAd>();
+    //private RewardedAd _rewardedAd;
     private bool isInit = false;
+    private readonly int queueSize = 2;
     public void InitAD()
     {
         if (!isInit)
@@ -28,44 +30,82 @@ public class AdManager : Singleton<AdManager>
                 initStatus => {
                     isInit = true;
                     Debug.Log("MobileAds.Initialize Complete");
-                    LoadRewardedAd();
+                    InitAdQueue();
                 });
         }
     }
 
-    public void LoadRewardedAd()
+    private void InitAdQueue()
     {
-        if (_rewardedAd != null)
+        for (int i = 0; i < queueSize; i++)
         {
-            _rewardedAd.Destroy();
-            _rewardedAd = null;
+            LoadRewardedAd().Forget();
         }
-
+    }
+    public async UniTask LoadRewardedAd()
+    {
+        UniTaskCompletionSource<RewardedAd> ucs = new UniTaskCompletionSource<RewardedAd>();
         var adRequest = new AdRequest();
         RewardedAd.Load(_adUnitId, adRequest, (RewardedAd ad, LoadAdError error) =>
         {
             if (error != null || ad == null)
             {
                 Debug.LogError("Rewarded ad failed to load an ad " + "with error : " + error);
+                ucs.TrySetResult(null);
                 return;
             }
 
             Debug.Log("Rewarded ad loaded with response : " + ad.GetResponseInfo());
-            _rewardedAd = ad;
-            RegisterReloadHandler(_rewardedAd);
+
+            ucs.TrySetResult(ad);
         });
+
+        var result = await ucs.Task;
+        if (result == null)
+        {
+            await UniTask.Yield();
+            await LoadRewardedAd();
+        }
+        else
+        {
+            adQueue.Enqueue(result);
+            RegisterReloadHandler(result);
+        }
     }
 
     public void ShowRewardedAd()
     {
-        const string rewardMsg = "Rewarded ad rewarded the user. Type: {0}, amount: {1}.";
-        if (_rewardedAd != null && _rewardedAd.CanShowAd())
+        if (adQueue.Count > 0)
         {
-            _rewardedAd.Show((Reward reward) =>
+            var rewardedAD = adQueue.Dequeue();
+            ShowRewardedAd(rewardedAD);
+        }
+        else
+        {
+            Debug.Log("adQueue.Count == 0");
+        }
+    }
+
+    public void ShowRewardedAd(RewardedAd _rewardedAd)
+    {
+        const string rewardMsg = "Rewarded ad rewarded the user. Type: {0}, amount: {1}.";
+        if (_rewardedAd != null)
+        {
+            if (_rewardedAd.CanShowAd())
             {
-                // TODO: Reward the user.
-                Debug.Log(string.Format(rewardMsg, reward.Type, reward.Amount));
-            });
+                _rewardedAd.Show((Reward reward) =>
+                {
+                    // TODO: Reward the user.
+                    Debug.Log(string.Format(rewardMsg, reward.Type, reward.Amount));
+                    _rewardedAd.Destroy();
+                    _rewardedAd = null;
+                });
+            }
+            else
+            {
+                _rewardedAd.Destroy();
+                _rewardedAd = null;
+            }
         }
     }
 

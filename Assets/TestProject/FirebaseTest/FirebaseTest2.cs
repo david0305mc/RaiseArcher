@@ -107,7 +107,8 @@ public class FirebaseTest2 : MonoBehaviour
 
     void Start()
     {
-        Init().Forget();   
+        Init().Forget();
+        AdManager.Instance.InitAD();
     }
 
     private async UniTaskVoid Init()
