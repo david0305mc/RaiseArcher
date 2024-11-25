@@ -105,7 +105,7 @@ public class NetworkAPI
 #else
         data.os = 1;
 #endif
-        var reqContext = NetworkTest.RequestContext.Create(ServerSetting.gameUrl, ServerCmd.AUTH_USER_LOGIN, data);
+        var reqContext = NetworkTest.RequestContext.Create(ServerCmd.AUTH_USER_LOGIN, data);
         var res = await NetworkManager.Instance.SendToServer<SignInRes>(reqContext, _cts);
         Debug.Log(res);
         return res;
@@ -128,7 +128,7 @@ public class NetworkAPI
         data.uno = uno;
         data.token = token;
 
-        var reqContext = NetworkTest.RequestContext.Create(ServerSetting.gameUrl, ServerCmd.AUTH_GAME_LOGIN, data);
+        var reqContext = NetworkTest.RequestContext.Create(ServerCmd.AUTH_GAME_LOGIN, data);
         LoginRes res = await NetworkManager.Instance.SendToServer<LoginRes>(reqContext, _cts);
         
         ServerSetting.sess = res.session;
@@ -159,7 +159,7 @@ public class NetworkAPI
         data.product_id = product_id;
         data.currency = currency;
 
-        var reqContext = NetworkTest.RequestContext.Create(ServerSetting.gameUrl, ServerCmd.BILLING_INIT, data);
+        var reqContext = NetworkTest.RequestContext.Create(ServerCmd.BILLING_INIT, data);
         return await NetworkManager.Instance.SendToServer<BillingOrderRes>(reqContext, cts);
     }
 
@@ -206,11 +206,11 @@ public class NetworkAPI
             }
         }
 
-        var reqContext = NetworkTest.RequestContext.Create(ServerSetting.gameUrl, ServerCmd.BILLING_RECEIPT, data);
+        var reqContext = NetworkTest.RequestContext.Create(ServerCmd.BILLING_RECEIPT, data);
         return await NetworkManager.Instance.SendToServer<BillingReceiptRes>(reqContext, cts);
     }
 
-    public class SaveDataRes
+    public class SaveData
     {
         public class RawData
         {
@@ -223,11 +223,11 @@ public class NetworkAPI
         public List<RawData> save_datas;
     }
 
-    public static async UniTask<SaveDataRes> LoadFromServer(CancellationTokenSource _cts)
+    public static async UniTask<SaveData> LoadFromServer(CancellationTokenSource _cts)
     {
         var data = new Dictionary<string, List<int>>() { { "date_keys", new List<int>() } };
-        var reqContext = NetworkTest.RequestContext.Create(ServerSetting.gameUrl, ServerCmd.USER_DATA_LOAD, data);
-        SaveDataRes res = await NetworkManager.Instance.SendToServer<SaveDataRes>(reqContext, _cts);
+        var reqContext = NetworkTest.RequestContext.Create(ServerCmd.USER_DATA_LOAD, data);
+        SaveData res = await NetworkManager.Instance.SendToServer<SaveData>(reqContext, _cts);
 
         res.save_datas.ForEach(x => x.tableName = ConvertToTableName(x.date_key));
         //if (useCompress)
@@ -255,14 +255,14 @@ public class NetworkAPI
     {
         UserDataManager.Instance.dbVersion.dbVersion = GameTime.Get();
         UserDataManager.Instance.SaveLocalData();
-        SaveDataRes data = new SaveDataRes();
+        SaveData data = new SaveData();
         data.ver = 999;
-        data.save_datas = new List<SaveDataRes.RawData>();
+        data.save_datas = new List<SaveData.RawData>();
         var tables = tableNames.Values.ToList();
         for (int i = 0; i < tableNames.Count; i++)
         {
             var date_key = ConvertToDateKey(tables[i]);
-            var rawData = new SaveDataRes.RawData();
+            var rawData = new SaveData.RawData();
             rawData.tableName = tables[i];
             rawData.date_key = date_key;
 
@@ -289,7 +289,7 @@ public class NetworkAPI
             data.save_datas.Add(rawData);
         }
         
-        var reqContext = NetworkTest.RequestContext.Create(ServerSetting.gameUrl, ServerCmd.USER_DATA_SAVE, data);
+        var reqContext = NetworkTest.RequestContext.Create(ServerCmd.USER_DATA_SAVE, data);
         await NetworkManager.Instance.SendToServer(reqContext, _cts);
     }
 }

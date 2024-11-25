@@ -38,7 +38,13 @@ public class InAppPurchaseManager : SingletonMono<InAppPurchaseManager>, IStoreL
         cts = new CancellationTokenSource();
         var builder = ConfigurationBuilder.Instance(StandardPurchasingModule.Instance());
         builder.AddProduct(productID, ProductType.Consumable); // Consumable, NonConsumable, Subscription ¡ﬂ º±≈√
+        purchaseUcs = null;
+        billingOrderRes = null;
         UnityPurchasing.Initialize(this, builder);
+        if (purchaseUcs != null)
+        {
+            Debug.Log("purchaseUcs != null");
+        }
     }
 
     private bool IsInitialized()
@@ -55,19 +61,35 @@ public class InAppPurchaseManager : SingletonMono<InAppPurchaseManager>, IStoreL
         }
 
         Product product = storeController.products.WithID(productID);
-
-        if (product != null && product.availableToPurchase)
+        if (product == null)
         {
-            Debug.Log($"Buying product: {product.definition.id}");
+            Debug.LogError("BuyProduct: Product is not available for purchase.");
+            return;
+        }
 
+        if (!product.availableToPurchase)
+        {
+            Debug.LogError("BuyProduct: Product is not available for purchase.");
+            return;
+        }
+
+
+
+        Debug.Log($"Buying product: {product.definition.id}");
+
+        try
+        {
+            TouchBlockManager.Instance.AddLock();
             billingOrderRes = await BillingMakeOrder(EStoreType.Android, shopID, productID, product.metadata.isoCurrencyCode, default);
             purchaseUcs = new UniTaskCompletionSource<BillingReceiptRes>();
             storeController.InitiatePurchase(product);
             var res = await purchaseUcs.Task;
         }
-        else
+        finally
         {
-            Debug.LogError("BuyProduct: Product is not available for purchase.");
+            TouchBlockManager.Instance.RemoveLock();
+            purchaseUcs = null;
+            billingOrderRes = null;
         }
     }
 
@@ -116,6 +138,19 @@ public class InAppPurchaseManager : SingletonMono<InAppPurchaseManager>, IStoreL
     public void OnPurchaseFailed(Product product, PurchaseFailureReason failureReason)
     {
         Debug.LogError($"Purchase failed: {product.definition.id}, {failureReason}");
+
+        if (purchaseUcs != null)
+        {
+            if (failureReason == PurchaseFailureReason.UserCancelled)
+            {
+                purchaseUcs.TrySetCanceled();
+            }
+            else
+            {
+                purchaseUcs.TrySetException(new Exception(failureReason.ToString()));
+            }
+
+        }
     }
 
     async UniTask BackEndValidation(Product product)
@@ -130,8 +165,8 @@ public class InAppPurchaseManager : SingletonMono<InAppPurchaseManager>, IStoreL
         await UniTask.Delay(TimeSpan.FromSeconds(waitSeconds), cancellationToken: cts.Token);
 
         //EStoreType storeType, string bid, string product_id, int shop_idx, CancellationTokenSource cts
-
-        BillingReceiptRes res = await BillingVerifyReceipt(EStoreType.Android, billingOrderRes.bid, billingOrderRes.product_id, billingOrderRes.shop_idx, product, default);
+        string bid = billingOrderRes?.bid ?? "";
+        BillingReceiptRes res = await BillingVerifyReceipt(EStoreType.Android, bid, product.definition.id, shopID, product, default);
 
         //UpdateUI();
 
@@ -146,9 +181,17 @@ public class InAppPurchaseManager : SingletonMono<InAppPurchaseManager>, IStoreL
         //{
         //    AddGold();
         //}
-        purchaseUcs.TrySetResult(res);
+        if (purchaseUcs != null)
+        {
+            Debug.Log("purchaseUcs != null");
+            if (res == null)
+            {
+                Debug.Log("res == null");
+            }
+            purchaseUcs?.TrySetResult(res);
+        }
         UserDataManager.Instance.baseData.gold.Value += 1000;
-        NetworkAPI.SaveToServer();
+        SaveToServer();
     }
 
 }

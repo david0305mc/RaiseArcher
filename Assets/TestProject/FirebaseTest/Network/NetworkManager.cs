@@ -28,7 +28,6 @@ namespace NetworkTest
     public class RequestContext
     {
         public string id;
-        public string url;
         public int method;
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public object @params;
@@ -41,14 +40,12 @@ namespace NetworkTest
         [JsonIgnore] public bool defaultRetryHandling;
 
         public static RequestContext Create<T>(
-            string url,
             int method,
             T data,
             RequestType requestType = RequestType.POST,
             bool defaultRetryHandling = true)
         {
             RequestContext ret = new RequestContext();
-            ret.url = url;
             ret.id = Utility.RandomId8Bytes();
             ret.method = method;
             ret.reqType = requestType;
@@ -65,6 +62,7 @@ namespace NetworkTest
         public JToken result;
         public ErrorData error;
         public AlertData alert;
+        public bool IsSuccess { get; set; }
         //public Protocols.Common.MaintenanceData maintenance;
         public double server_time;
         public T GetResult<T>() => result.ToObject<T>();
@@ -130,6 +128,8 @@ public class NetworkManager : SingletonMono<NetworkManager>
     }
     public async UniTask<NetworkTest.ResponseContext> SendToServer(NetworkTest.RequestContext data, CancellationTokenSource cts) 
     {
+        NetworkTest.ResponseContext resContext = new NetworkTest.ResponseContext();
+        resContext.IsSuccess = false;
         try
         {
             TouchBlockManager.Instance.AddLock();
@@ -159,15 +159,21 @@ public class NetworkManager : SingletonMono<NetworkManager>
                 {
                     await req.SendWebRequest().WithCancellation(cts.Token);
                     var text = encryptor != null ? await encryptor.DecryptToStringAsync(req.downloadHandler.text) : req.downloadHandler.text;
-                    var resContext = JsonConvert.DeserializeObject<NetworkTest.ResponseContext>(text);
+                    resContext = JsonConvert.DeserializeObject<NetworkTest.ResponseContext>(text);
 
                     if (resContext.error != null)
                     {
+                        resContext.IsSuccess = false;
                         Debug.LogError($"resContext.error {resContext.error.message}");
                     }
                     else if (resContext.alert != null)
                     {
+                        resContext.IsSuccess = true;
                         Debug.LogError($"resContext.alert {resContext.alert.message}");
+                    }
+                    else
+                    {
+                        resContext.IsSuccess = true;
                     }
 
                     return resContext;
@@ -191,7 +197,7 @@ public class NetworkManager : SingletonMono<NetworkManager>
                     return await SendToServer(data, cts);
                 }
             }
-            return default;
+            return resContext;
         }
         finally
         {
