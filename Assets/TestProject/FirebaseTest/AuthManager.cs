@@ -40,6 +40,7 @@ public class AuthManager : Singleton<AuthManager>, IDisposable
         {
             InitializeFirebase();
             InitializeGPGS();
+            AdManager.Instance.InitAD();
             initialized = true;
             return true;
         }

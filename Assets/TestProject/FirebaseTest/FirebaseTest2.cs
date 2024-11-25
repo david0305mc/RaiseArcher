@@ -190,7 +190,10 @@ public class FirebaseTest2 : MonoBehaviour
     public void OnClickNeworkTest()
     {
         NetworkTest.NetworkCall.Instance.OnClickPostRequest();
+    }
 
-
+    public void OnClickADTest()
+    {
+        AdManager.Instance.ShowRewardedAd();
     }
 }
