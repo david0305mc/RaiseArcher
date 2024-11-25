@@ -38,14 +38,14 @@ public class AdManager : Singleton<AdManager>
     {
         for (int i = 0; i < queueSize; i++)
         {
-            LoadRewardedAd().Forget();
+            LoadRewardedAd(_adUnitId).Forget();
         }
     }
-    public async UniTask LoadRewardedAd()
+    public async UniTask LoadRewardedAd(string adID)
     {
         UniTaskCompletionSource<RewardedAd> ucs = new UniTaskCompletionSource<RewardedAd>();
         var adRequest = new AdRequest();
-        RewardedAd.Load(_adUnitId, adRequest, (RewardedAd ad, LoadAdError error) =>
+        RewardedAd.Load(adID, adRequest, (RewardedAd ad, LoadAdError error) =>
         {
             if (error != null || ad == null)
             {
@@ -53,7 +53,7 @@ public class AdManager : Singleton<AdManager>
                 ucs.TrySetResult(null);
                 return;
             }
-
+            
             Debug.Log("Rewarded ad loaded with response : " + ad.GetResponseInfo());
 
             ucs.TrySetResult(ad);
@@ -74,14 +74,14 @@ public class AdManager : Singleton<AdManager>
                 Debug.LogError("LoadRewardedAd Fail Can not Show");
                 result.Destroy();
                 await UniTask.Yield();
-                await LoadRewardedAd();
+                await LoadRewardedAd(adID);
             }
         }
         else
         {
             Debug.LogError("LoadRewardedAd Fail ad null");
             await UniTask.Yield();
-            await LoadRewardedAd();
+            await LoadRewardedAd(adID);
         }
     }
 
@@ -105,7 +105,6 @@ public class AdManager : Singleton<AdManager>
         {
             // TODO: Reward the user.
             Debug.Log(string.Format(rewardMsg, reward.Type, reward.Amount));
-            _rewardedAd.Destroy();
         });
     }
 
@@ -116,7 +115,8 @@ public class AdManager : Singleton<AdManager>
             Debug.Log("Rewarded Ad full screen content closed.");
 
             // Reload the ad so that we can show another as soon as possible.
-            LoadRewardedAd();
+            LoadRewardedAd(ad.GetAdUnitID());
+            ad.Destroy();
         };
         ad.OnAdFullScreenContentFailed += (AdError error) =>
         {
@@ -124,7 +124,8 @@ public class AdManager : Singleton<AdManager>
                            "with error : " + error);
 
             // Reload the ad so that we can show another as soon as possible.
-            LoadRewardedAd();
+            LoadRewardedAd(ad.GetAdUnitID());
+            ad.Destroy();
         };
     }
 
