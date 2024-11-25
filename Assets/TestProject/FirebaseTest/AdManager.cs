@@ -19,7 +19,6 @@ public class AdManager : Singleton<AdManager>
 #endif
 
     private Queue<RewardedAd> adQueue = new Queue<RewardedAd>();
-    //private RewardedAd _rewardedAd;
     private bool isInit = false;
     private readonly int queueSize = 2;
     public void InitAD()
@@ -61,15 +60,28 @@ public class AdManager : Singleton<AdManager>
         });
 
         var result = await ucs.Task;
-        if (result == null)
+        if (result != null)
         {
-            await UniTask.Yield();
-            await LoadRewardedAd();
+            if (result.CanShowAd())
+            {
+                adQueue.Enqueue(result);
+                RegisterReloadHandler(result);
+                
+                Debug.Log($"Enqueue {adQueue.Count}");
+            }
+            else
+            {
+                Debug.LogError("LoadRewardedAd Fail Can not Show");
+                result.Destroy();
+                await UniTask.Yield();
+                await LoadRewardedAd();
+            }
         }
         else
         {
-            adQueue.Enqueue(result);
-            RegisterReloadHandler(result);
+            Debug.LogError("LoadRewardedAd Fail ad null");
+            await UniTask.Yield();
+            await LoadRewardedAd();
         }
     }
 
@@ -89,24 +101,12 @@ public class AdManager : Singleton<AdManager>
     public void ShowRewardedAd(RewardedAd _rewardedAd)
     {
         const string rewardMsg = "Rewarded ad rewarded the user. Type: {0}, amount: {1}.";
-        if (_rewardedAd != null)
+        _rewardedAd.Show((Reward reward) =>
         {
-            if (_rewardedAd.CanShowAd())
-            {
-                _rewardedAd.Show((Reward reward) =>
-                {
-                    // TODO: Reward the user.
-                    Debug.Log(string.Format(rewardMsg, reward.Type, reward.Amount));
-                    _rewardedAd.Destroy();
-                    _rewardedAd = null;
-                });
-            }
-            else
-            {
-                _rewardedAd.Destroy();
-                _rewardedAd = null;
-            }
-        }
+            // TODO: Reward the user.
+            Debug.Log(string.Format(rewardMsg, reward.Type, reward.Amount));
+            _rewardedAd.Destroy();
+        });
     }
 
     private void RegisterReloadHandler(RewardedAd ad)
