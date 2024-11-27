@@ -9,18 +9,19 @@ using Cysharp.Threading.Tasks;
 public class AdManager : Singleton<AdManager>
 {
 
-#if UNITY_ANDROID
-    //private string _adUnitId = "ca-app-pub-3940256099942544/5224354917";
-    private string _adUnitId = "ca-app-pub-9673687584530511/1466634455";
-#elif UNITY_IPHONE
-  private string _adUnitId = "ca-app-pub-3940256099942544/1712485313";
-#else
-  private string _adUnitId = "unused";
-#endif
+    private string testUnitId = "ca-app-pub-3940256099942544/5224354917";
+
+    private List<string> UnitIDList = new List<string>()
+    {
+        "ca-app-pub-9673687584530511/1232081459",
+        "ca-app-pub-9673687584530511/7605918112",
+        "ca-app-pub-9673687584530511/8317861411",
+        "ca-app-pub-9673687584530511/7004779742",
+        "ca-app-pub-9673687584530511/8619616887",
+    };
 
     private Queue<RewardedAd> adQueue = new Queue<RewardedAd>();
     private bool isInit = false;
-    private readonly int queueSize = 2;
     public void InitAD()
     {
         if (!isInit)
@@ -36,10 +37,20 @@ public class AdManager : Singleton<AdManager>
 
     private void InitAdQueue()
     {
-        for (int i = 0; i < queueSize; i++)
+        UniTask.Create(async () =>
         {
-            LoadRewardedAd(_adUnitId).Forget();
-        }
+#if DEV
+            for (int i = 0; i < 3; i++)
+            {
+                await LoadRewardedAd(testUnitId);
+            }
+#else
+            for (int i = 0; i < UnitIDList.Count; i++)
+            {
+                await LoadRewardedAd(UnitIDList[i]);
+            }
+#endif
+        });
     }
     public async UniTask LoadRewardedAd(string adID)
     {
